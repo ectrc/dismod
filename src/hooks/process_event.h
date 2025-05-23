@@ -6,6 +6,8 @@
 #include <memory>
 #include <sdk.hpp>
 
+#define LOG_PE 0
+
 typedef void (__thiscall *process_event_t)(UObject* object, UFunction* function, void* params, void* result);
 
 class process_event_hook {

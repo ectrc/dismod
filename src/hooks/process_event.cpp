@@ -11,16 +11,17 @@ auto process_event_hook::instance() -> std::shared_ptr<process_event_hook> {
 }
 
 process_event_hook::process_event_hook() {
-  LOG("trampoline addr: {:#x}", reinterpret_cast<uintptr_t>(this->trampoline));
-
   this->hook_ = base_hook<process_event_t>{
+    "process event",
     hat::compile_signature<"55 8B EC 6A ?? 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC ?? A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 57 50 8D 45 ?? 64 A3 ?? ?? ?? ?? 8B F1">(),
     this->trampoline
   };
 }
 
 auto __thiscall process_event_hook::trampoline(UObject* object, UFunction* function, void* params, void* result) -> void {
-  LOG("{}->{}", object->GetName(), function->GetName());
+#if LOG_PE
+  LOG("{}->ProcessEvent({})", object->GetName(), function->GetName());
+#endif
   
   return process_event_hook::instance()->hook_.original()(object, function, params, result);
 } 

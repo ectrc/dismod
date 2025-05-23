@@ -1,17 +1,22 @@
 #include "library.h"
 
 #include "hooks/process_event.h"
+#include "hooks/load_package.h"
+#include "hooks/load_package_async.h"
 
 auto __stdcall thread(void* module) -> void {
+  CLEAR_CONSOLE();
   LOG("Welcome!");
 
   const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
   GObjects = reinterpret_cast<TArray<UObject*>*>(base + 0x1023630);
   GNames = reinterpret_cast<TArray<FNameEntry*>*>(base + 0x1035674);
 
-  {
-    const auto pe = process_event_hook::instance(); 
-    pe->hook_.enable(); 
+  { 
+    process_event_hook::instance()->hook_.enable(); 
+    load_package_hook::instance()->hook_.enable();
+    load_package_async_hook::instance()->hook_.enable();
+
     while (GetAsyncKeyState(VK_END) == 0) { Sleep(100); }
   }
     
