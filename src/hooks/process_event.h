@@ -6,7 +6,7 @@
 #include <memory>
 #include <sdk.hpp>
 
-typedef void (__thiscall *process_event_t)(void* object, void* function, void* params, void* result);
+typedef void (__thiscall *process_event_t)(UObject* object, UFunction* function, void* params, void* result);
 
 class process_event_hook {
 public:
@@ -14,9 +14,9 @@ public:
   static auto instance() -> std::shared_ptr<process_event_hook>;
 
 #ifdef __INTELLISENSE__
-  static void trampoline(UObject* object, UFunction* function, void* params, void* result);
+  static auto trampoline(UObject* object, UFunction* function, void* params, void* result) -> void;
 #else
-  static void __thiscall trampoline(UObject* object, UFunction* function, void* params, void* result);
+  static auto __thiscall trampoline(UObject* object, UFunction* function, void* params, void* result) -> void;
 #endif
 
 public:
