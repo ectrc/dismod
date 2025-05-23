@@ -3,6 +3,7 @@
 #include "hooks/process_event.h"
 #include "hooks/load_package.h"
 #include "hooks/load_package_async.h"
+#include "hooks/static_load_object.h"
 
 auto __stdcall thread(void* module) -> void {
   CLEAR_CONSOLE();
@@ -16,8 +17,11 @@ auto __stdcall thread(void* module) -> void {
     process_event_hook::instance()->hook_.enable(); 
     load_package_hook::instance()->hook_.enable();
     load_package_async_hook::instance()->hook_.enable();
+    static_load_object_hook::instance()->hook_.enable();
 
-    while (GetAsyncKeyState(VK_END) == 0) { Sleep(100); }
+    engine::LoadPackage(nullptr, L"L_Pub_Day_P", engine::load_flags::none);
+
+    while (GetAsyncKeyState(VK_END) == 0) { Sleep(1000); }
   }
     
   LOG("Exiting...");

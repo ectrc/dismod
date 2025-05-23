@@ -15,9 +15,11 @@ add_subdirectory(external/sdk)
 
 add_library(dismod SHARED
   library.cpp
+  src/engine/engine.cpp
   src/hooks/process_event.cpp
   src/hooks/load_package.cpp
   src/hooks/load_package_async.cpp
+  src/hooks/static_load_object.cpp
 )
 target_include_directories(dismod PUBLIC include src)
 target_link_libraries(dismod PUBLIC 

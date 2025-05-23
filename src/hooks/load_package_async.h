@@ -8,13 +8,13 @@
 
 #include "engine/engine.h"
 
-typedef UPackage* (__cdecl *load_package_async_t)(const FString& package_name, engine::FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type);
+typedef void (__cdecl *load_package_async_t)(const FString& package_name, engine::FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type);
 
 class load_package_async_hook {
 public:
   load_package_async_hook();
   static auto instance() -> std::shared_ptr<load_package_async_hook>;
-  static auto __cdecl trampoline(const FString& package_name, engine::FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type) -> UPackage*;
+  static auto __cdecl trampoline(const FString& package_name, engine::FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type) -> void;
 
 public:
   base_hook<load_package_async_t> hook_;

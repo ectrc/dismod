@@ -51,7 +51,7 @@ namespace engine {
    * @param	flags Flags controlling loading behavior
    * @return Loaded package if successful, NULL otherwise
    */
-  UPackage* LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags);
+  auto LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage*;
 
   typedef void (*FAsyncCompletionCallback)(UObject* LinkerRoot, void* CallbackUserData);
   /**
@@ -63,15 +63,15 @@ namespace engine {
    * @param	required_guid GUID of the package to load, or NULL for "don't care"
    * @param	package_type A type name associated with this package for later use
    */
-  void LoadPackageAsync(const FString& package_name, FAsyncCompletionCallback completion_callback, void* callback_user_data = nullptr, const FGuid* required_guid = nullptr, FName package_type = FName(0));
+  auto LoadPackageAsync(const FString& package_name, FAsyncCompletionCallback completion_callback, void* callback_user_data = nullptr, const FGuid* required_guid = nullptr, FName package_type = FName(0)) -> void;
 
   /**
    * Find or load an object by string name with optional outer and filename specifications.
    * These are optional because the InName can contain all of the necessary information.
    *
    * @param object_class The class (or a superclass) of the object to be loaded.
-   * @param in An optional object to narrow where to find/load the object from
-   * @param in_name String name of the object. If it's not fully qualified, InOuter and/or Filename will be needed
+   * @param outer An optional object to narrow where to find/load the object from
+   * @param outer_name String name of the object. If it's not fully qualified, InOuter and/or Filename will be needed
    * @param file_name An optional file to load from (or find in the file's package object)
    * @param load_flags Flags controlling how to handle loading from disk
    * @param sandbox A list of packages to restrict the search for the object
@@ -79,7 +79,13 @@ namespace engine {
    *
    * @return The object that was loaded or found. nullptr for a failure.
    */
-  UObject* StaticLoadObject(UClass* object_class, UObject* in, const wchar_t* in_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation);
+  auto StaticLoadObject(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation = true) -> UObject*;
+
+  template<typename T>
+  auto LoadObject(UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox) -> T* {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+    return static_cast<T*>(StaticLoadObject(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox));
+  }
 }
 
 #endif
