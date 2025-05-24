@@ -7,7 +7,7 @@
 #include "hooks/static_load_object.h"
 
 auto engine::LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage* {
-  ::std::wstring file_name_wstr = file_name;
+  ::std::wstring file_name_wstr = file_name != nullptr ? file_name : L"nullptr";
   ::std::string file_name_str = ::std::string(file_name_wstr.begin(), file_name_wstr.end());
   
   LOG("LoadPackage({}, {}, {})", in != nullptr ? in->GetPackageName().ToString() : "nullptr", file_name_str, engine::load_flags_to_string(load_flags));
@@ -22,13 +22,14 @@ auto engine::LoadPackageAsync(const FString& package_name, FAsyncCompletionCallb
 }
 
 auto engine::StaticLoadObject(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation) -> UObject* {
-  ::std::wstring outer_name_wstr = outer_name;
+#if LOG_SLO_ME
+  ::std::wstring outer_name_wstr = outer_name != nullptr ? outer_name : L"nullptr";
   ::std::string outer_name_str = ::std::string(outer_name_wstr.begin(), outer_name_wstr.end());
 
-  ::std::wstring file_name_wstr = file_name;
+  ::std::wstring file_name_wstr = file_name != nullptr ? file_name : L"nullptr";
   ::std::string file_name_str = ::std::string(file_name_wstr.begin(), file_name_wstr.end());
-
-  LOG("StaticLoadObject({}, {}, {}, {}, {})", object_class != nullptr ? object_class->GetName() : "nullptr", outer != nullptr ? outer->GetName() : "nullptr", outer_name_str, file_name_str, engine::load_flags_to_string(load_flags));
+  LOG("StaticLoadObject({}, {}, {}, {}, {}, {})", object_class != nullptr ? object_class->GetName() : "nullptr", outer != nullptr ? outer->GetName() : "nullptr", outer_name_str, file_name_str, engine::load_flags_to_string(load_flags), sandbox != nullptr ? sandbox->GetName() : "nullptr", allow_object_reconciliation ? "true" : "false");
+#endif
 
   return static_load_object_hook::instance()->hook_.original()(object_class, outer, outer_name, file_name, load_flags, sandbox, allow_object_reconciliation);
 }

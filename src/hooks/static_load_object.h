@@ -10,6 +10,9 @@
 
 typedef UObject* (__cdecl *static_load_object_t)(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, engine::load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation);
 
+#define LOG_SLO 0
+#define LOG_SLO_ME 1
+
 class static_load_object_hook {
 public:
   static_load_object_hook();

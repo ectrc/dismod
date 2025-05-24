@@ -86,6 +86,44 @@ namespace engine {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
     return static_cast<T*>(StaticLoadObject(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox));
   }
+
+  template<typename T>
+  auto FindObjects(const char* name, bool exact = false) -> TArray<T*> {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+    TArray<T*> result;
+    for (auto object : *GObjects) {
+      if (object && object->IsA(T::StaticClass())) {
+        std::string current_object_name = object->GetFullName();
+        if (current_object_name.find("Default__") != std::string::npos) {
+          continue;
+        }
+
+        if (exact) {
+          if (strcmp(current_object_name.c_str(), name) == 0) {
+            result.push_back(static_cast<T*>(object));
+          }
+        } else {
+          if (current_object_name.find(name) != std::string::npos) {
+            result.push_back(static_cast<T*>(object));
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  template<typename T>
+  auto FindObjects() -> TArray<T*> {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+
+    TArray<T*> result;
+    for (auto object : *GObjects) {
+      if (object && object->IsA(T::StaticClass()) && object->GetFullName().find("Default__") == std::string::npos) {
+        result.push_back(static_cast<T*>(object));
+      }
+    }
+    return result;
+  }
 }
 
 #endif
