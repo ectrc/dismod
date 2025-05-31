@@ -864,7 +864,9 @@ class UFunction : public UStruct
 public:
 	uint64_t FunctionFlags; // 0x0080 (0x0008)
 	uint16_t iNative; // 0x0088 (0x0002)
-	uint8_t UnknownData00[0x16];// 0x008A (0x0016) DYNAMIC FIELD PADDING
+	uint8_t UnknownData00[0x12];// 0x008A (0x0016) DYNAMIC FIELD PADDING
+
+  void(*exec)(void* context, void* stack, void* const result);
 
 public:
 	static UClass* StaticClass()

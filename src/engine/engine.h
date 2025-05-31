@@ -113,16 +113,40 @@ namespace engine {
   }
 
   template<typename T>
+  auto FindObject(const char* name, bool exact = false) -> T* {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+    
+    const auto array_result = FindObjects<T>(name, exact);
+    if (array_result.size() > 0) {
+      return array_result[0];
+    }
+
+    return nullptr;
+  }
+
+  template<typename T>
   auto FindObjects() -> TArray<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
     TArray<T*> result;
     for (auto object : *GObjects) {
-      if (object && object->IsA(T::StaticClass()) && object->GetFullName().find("Default__") == std::string::npos) {
+      if (object && object->IsA(T::StaticClass()) && object->GetNameCPP().find("Default_") == std::string::npos) {
         result.push_back(static_cast<T*>(object));
       }
     }
     return result;
+  }
+
+  template<typename T>
+  auto FindObject() -> T* {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+
+    const auto array_result = FindObjects<T>();
+    if (array_result.size() > 0) {
+      return array_result[0];
+    }
+
+    return nullptr;
   }
 }
 

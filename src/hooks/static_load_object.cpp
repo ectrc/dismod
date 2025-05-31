@@ -16,6 +16,11 @@ static_load_object_hook::static_load_object_hook() {
     hat::compile_signature<"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 6C 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D 45 F4 64 A3 00 00 00 00 89 65">(),
     this->trampoline
   };
+
+  if (!this->hook_.install()) {
+    LOG("Failed to install static_load_object_hook");
+    return;
+  }
 }
 
 auto __cdecl static_load_object_hook::trampoline(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, engine::load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation) -> UObject* {

@@ -20,6 +20,7 @@ add_library(dismod SHARED
   src/hooks/load_package.cpp
   src/hooks/load_package_async.cpp
   src/hooks/static_load_object.cpp
+  src/hooks/post_render.cpp
 )
 target_include_directories(dismod PUBLIC include src)
 target_link_libraries(dismod PUBLIC 

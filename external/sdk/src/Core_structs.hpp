@@ -37,6 +37,45 @@ struct FVector
 	float                                              X;                                             // 0x0000 (0x0004) [0x0000000000000001] (CPF_Edit)    
 	float                                              Y;                                             // 0x0004 (0x0004) [0x0000000000000001] (CPF_Edit)    
 	float                                              Z;                                             // 0x0008 (0x0004) [0x0000000000000001] (CPF_Edit)    
+
+  FVector() : X(0.0f), Y(0.0f), Z(0.0f) {}
+
+  FVector(float x, float y, float z) : X(x), Y(y), Z(z) {}
+
+  FVector operator+(const FVector& other) const {
+    return FVector(X + other.X, Y + other.Y, Z + other.Z);
+  }
+
+  FVector operator-(const FVector& other) const {
+    return FVector(X - other.X, Y - other.Y, Z - other.Z);
+  }
+
+  FVector operator*(float scalar) const {
+    return FVector(X * scalar, Y * scalar, Z * scalar);
+  }
+
+  FVector operator/(float scalar) const {
+    if (scalar != 0.0f) {
+      return FVector(X / scalar, Y / scalar, Z / scalar);
+    }
+    return FVector(0.0f, 0.0f, 0.0f); // Avoid division by zero
+  }
+
+  float Mod() const {
+    return sqrt(X * X + Y * Y + Z * Z);
+  }
+
+  FVector Normalize() const {
+    float magnitude = Mod();
+    if (magnitude > 0.0f) {
+      return FVector(X / magnitude, Y / magnitude, Z / magnitude);
+    }
+    return FVector(0.0f, 0.0f, 0.0f); // Avoid division by zero
+  }
+
+  std::string ToString() const {
+    return "FVector(" + std::to_string(X) + ", " + std::to_string(Y) + ", " + std::to_string(Z) + ")";
+  }
 };
 
 // ScriptStruct Core.Object.Plane

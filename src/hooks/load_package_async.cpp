@@ -16,6 +16,11 @@ load_package_async_hook::load_package_async_hook() {
     hat::compile_signature<"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 81 EC 8C 00 00 00 56 57">(),
     this->trampoline
   };
+
+  if (!this->hook_.install()) {
+    LOG("Failed to install load_package_async_hook");
+    return;
+  }
 }
 
 auto __cdecl load_package_async_hook::trampoline(const FString& package_name, engine::FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type) -> void {
