@@ -4,7 +4,9 @@
 #include "hooks/load_package.h"
 #include "hooks/load_package_async.h"
 #include "hooks/static_load_object.h"
-#include "hooks/post_render.h"
+#include "hooks/static_construct_object.h"
+
+#include "engine/engine.h"
 
 auto __stdcall thread(void* module) -> void {
   CLEAR_CONSOLE();
@@ -16,15 +18,16 @@ auto __stdcall thread(void* module) -> void {
 
   // todo: find a better way to get the player pawn than using a raw offset
   const auto player = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
+  const auto controller = reinterpret_cast<ADishonoredPlayerController*>(player->Controller);
 
   { 
     process_event_hook::instance()->hook_.enable();
     load_package_hook::instance()->hook_.enable();
     load_package_async_hook::instance()->hook_.enable();
     static_load_object_hook::instance()->hook_.enable();
-    post_render_hook::instance()->hook_.enable();
+    static_construct_object_hook::instance()->hook_.enable();
 
-    while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(1000); }
+    while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
   }
 
   FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
@@ -35,7 +38,7 @@ void __stdcall unload(void* module) {
   load_package_hook::instance()->hook_.disable();
   load_package_async_hook::instance()->hook_.disable();
   static_load_object_hook::instance()->hook_.disable();
-  post_render_hook::instance()->hook_.disable();
+  static_construct_object_hook::instance()->hook_.disable();
   LOG("Unloaded!");
 }
 

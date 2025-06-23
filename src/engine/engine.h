@@ -87,6 +87,28 @@ namespace engine {
     return static_cast<T*>(StaticLoadObject(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox));
   }
 
+  auto GetTransientPackage() -> UObject*;
+  /**
+   * Create a new instance of an object. The returned object will be fully initialized. If InFlags contains RF_NeedsLoad (indicating that the object still needs to load its object data from disk), components
+   * are not instantiated (this will instead occur in PostLoad()). The difference between StaticConstructObject and StaticAllocateObject is that StaticConstructObject will also call the class constructor on the object
+   * and instantiate any components.
+   * 
+   * @param object_class The class of the object to create.
+   * @param outer The object to create this object within (the Outer property for the new object will be set to the value specified here).
+   * @param name The name to give the new object. If no value (NAME_None) is specified, the object will be given a unique name in the form of ClassName_#.
+   * @param object_flags The ObjectFlags to assign to the new object. Some flags can affect the behavior of constructing the object.
+   * @param template_ If specified, the property values from this object will be copied to the new object, and the new object's ObjectArchetype value will be set to this object.
+   * @param error The output device to use for logging errors.
+   * @param sub_object_root Only used to when duplicating or instancing objects; in a nested subobject chain, corresponds to the first object that is not a subobject.
+   */
+  auto StaticConstructObject(UClass* object_class, UObject* outer = GetTransientPackage(), FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> UObject*;
+
+  template<typename T>
+  auto ConstructObject(UObject* outer = GetTransientPackage(), FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr, void* extra_ = nullptr, void* extra__ = nullptr) -> T* {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+    return static_cast<T*>(StaticConstructObject(T::StaticClass(), outer, name, object_flags, template_, error, sub_object_root, graph));
+  }
+
   template<typename T>
   auto FindObjects(const char* name, bool exact = false) -> TArray<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
