@@ -8,6 +8,9 @@
 #include "hooks/render/end_scene.h"
 
 #include "engine/engine.h"
+#include "engine/state.h"
+
+#include "render/render.h"
 
 auto __stdcall thread(void* module) -> void {
   CLEAR_CONSOLE();
@@ -17,8 +20,9 @@ auto __stdcall thread(void* module) -> void {
   GObjects = reinterpret_cast<TArray<UObject*>*>(base + 0x1023630);
   GNames = reinterpret_cast<TArray<FNameEntry*>*>(base + 0x1035674);
 
-  const auto player = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
-  const auto controller = reinterpret_cast<ADishonoredPlayerController*>(player->Controller);
+  const auto state = get_state();
+  state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
+  state->controller = reinterpret_cast<ADishonoredPlayerController*>(state->pawn->Controller);
 
   { 
     process_event_hook::instance()->hook_.enable();
@@ -41,7 +45,8 @@ void __stdcall unload(void* module) {
   static_load_object_hook::instance()->hook_.disable();
   static_construct_object_hook::instance()->hook_.disable();
   end_scene_hook::instance()->hook_.disable();
-  
+  render::cleanup();
+
   LOG("Unloaded!");
 }
 

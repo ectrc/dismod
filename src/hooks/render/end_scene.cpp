@@ -1,4 +1,5 @@
 #include "end_scene.h"
+#include "render/render.h"
 
 std::shared_ptr<end_scene_hook> end_scene_hook::instance_ = nullptr;
 IDirect3DDevice9* end_scene_hook::device_ = nullptr;
@@ -12,7 +13,7 @@ auto end_scene_hook::instance() -> std::shared_ptr<end_scene_hook> {
 }
 
 end_scene_hook::end_scene_hook() {
-  const auto window_handle = GetForegroundWindow();
+  const auto window_handle = FindWindowA(nullptr, "Dishonored");
   if (window_handle == nullptr) {
     LOG("Failed to get foreground window handle");
     return;
@@ -59,13 +60,19 @@ end_scene_hook::end_scene_hook() {
     return;
   }
 
-  LOG("end_scene_hook installed successfully");
+  render::original_window_proc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window_handle, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(render::window_proc)));
+  if (render::original_window_proc == nullptr) {
+    LOG("Failed to set window procedure");
+    return;
+  }
 }
 
 auto APIENTRY end_scene_hook::trampoline(LPDIRECT3DDEVICE9 device) -> HRESULT {
-  LOG("end_scene_hook called");
-
   end_scene_hook::device_ = device;
 
+  render::setup(device);
+  render::draw_to_texture(device);
+  render::draw_overlay(device);
+  
   return end_scene_hook::instance()->hook_.original()(device);
 }
