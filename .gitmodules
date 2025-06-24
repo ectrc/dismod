@@ -4,6 +4,3 @@
 [submodule "external/minhook"]
 	path = external/minhook
 	url = https://github.com/TsudaKageyu/minhook
-[submodule "external/imgui"]
-	path = external/imgui
-	url = https://github.com/ocornut/imgui

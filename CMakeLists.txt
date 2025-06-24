@@ -12,6 +12,7 @@ endif()
 add_subdirectory(external/libhat)
 add_subdirectory(external/minhook)
 add_subdirectory(external/sdk)
+file(GLOB_RECURSE imgui CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/*.cpp")
 
 add_library(dismod SHARED
   library.cpp
@@ -22,8 +23,10 @@ add_library(dismod SHARED
   src/hooks/engine/static_load_object.cpp
   src/hooks/engine/static_construct_object.cpp
   src/hooks/render/end_scene.cpp
+
+  ${imgui}
 )
-target_include_directories(dismod PUBLIC include src)
+target_include_directories(dismod PUBLIC include src external/imgui)
 target_link_libraries(dismod PUBLIC 
   libhat 
   sdk 
