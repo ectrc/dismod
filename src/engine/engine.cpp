@@ -3,10 +3,10 @@
 #include <string>
 #include <libhat.hpp>
 
-#include "hooks/load_package.h"
-#include "hooks/load_package_async.h"
-#include "hooks/static_load_object.h"
-#include "hooks/static_construct_object.h"
+#include "hooks/engine/load_package.h"
+#include "hooks/engine/load_package_async.h"
+#include "hooks/engine/static_load_object.h"
+#include "hooks/engine/static_construct_object.h"
 
 auto engine::LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage* {
   ::std::wstring file_name_wstr = file_name != nullptr ? file_name : L"nullptr";
@@ -36,29 +36,9 @@ auto engine::StaticLoadObject(UClass* object_class, UObject* outer, const wchar_
   return static_load_object_hook::instance()->hook_.original()(object_class, outer, outer_name, file_name, load_flags, sandbox, allow_object_reconciliation);
 }
 
-auto engine::GetTransientPackage() -> UObject* {
-  LOG("GetTransientPackage()");
-
-  typedef UObject* (*get_transient_package_t)();
-  static get_transient_package_t get_transient_package = nullptr;
-
-  const hat::process::module process_module = hat::process::get_process_module();
-  const auto dos_header = reinterpret_cast<const IMAGE_DOS_HEADER*>(process_module.address());
-  const auto headers = *reinterpret_cast<const IMAGE_NT_HEADERS*>(reinterpret_cast<uintptr_t>(dos_header) + dos_header->e_lfanew);
-  const auto pattern = hat::compile_signature<"E8 ?? ?? ?? ?? 8B 0E 50 8B 03">();
-  const auto scan_result = hat::find_pattern(reinterpret_cast<const std::byte*>(dos_header), reinterpret_cast<const std::byte*>(dos_header) + headers.OptionalHeader.SizeOfCode, pattern);
-  if (scan_result.has_result()) get_transient_package = reinterpret_cast<get_transient_package_t>(scan_result.get());
-  else {
-    LOG("Failed to find GetTransientPackage pattern");
-    return nullptr;
-  }
-
-  return get_transient_package();
-}
-
 auto engine::StaticConstructObject(UClass* object_class, UObject* outer, FName name, DWORD object_flags, UObject* template_, void* error, UObject* sub_object_root, void* graph) -> UObject* {
 #if LOG_SCO_ME
   LOG("StaticConstructObject({}, {}, {})", object_class != nullptr ? object_class->GetName() : "nullptr", outer != nullptr ? outer->GetName() : "nullptr", name.ToString());
 #endif
-  return static_construct_object_hook::instance()->hook_.original()(object_class, outer, name, object_flags, template_, error, sub_object_root, graph, nullptr, nullptr);
+  return static_construct_object_hook::instance()->hook_.original()(object_class, outer, name, object_flags, template_, error, sub_object_root, graph, 0, 0);
 }

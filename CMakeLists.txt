@@ -16,15 +16,17 @@ add_subdirectory(external/sdk)
 add_library(dismod SHARED
   library.cpp
   src/engine/engine.cpp
-  src/hooks/process_event.cpp
-  src/hooks/load_package.cpp
-  src/hooks/load_package_async.cpp
-  src/hooks/static_load_object.cpp
-  src/hooks/static_construct_object.cpp
+  src/hooks/engine/process_event.cpp
+  src/hooks/engine/load_package.cpp
+  src/hooks/engine/load_package_async.cpp
+  src/hooks/engine/static_load_object.cpp
+  src/hooks/engine/static_construct_object.cpp
+  src/hooks/render/end_scene.cpp
 )
 target_include_directories(dismod PUBLIC include src)
 target_link_libraries(dismod PUBLIC 
   libhat 
   sdk 
   minhook
+  d3d9
 )

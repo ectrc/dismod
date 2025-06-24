@@ -87,7 +87,6 @@ namespace engine {
     return static_cast<T*>(StaticLoadObject(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox));
   }
 
-  auto GetTransientPackage() -> UObject*;
   /**
    * Create a new instance of an object. The returned object will be fully initialized. If InFlags contains RF_NeedsLoad (indicating that the object still needs to load its object data from disk), components
    * are not instantiated (this will instead occur in PostLoad()). The difference between StaticConstructObject and StaticAllocateObject is that StaticConstructObject will also call the class constructor on the object
@@ -101,10 +100,10 @@ namespace engine {
    * @param error The output device to use for logging errors.
    * @param sub_object_root Only used to when duplicating or instancing objects; in a nested subobject chain, corresponds to the first object that is not a subobject.
    */
-  auto StaticConstructObject(UClass* object_class, UObject* outer = GetTransientPackage(), FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> UObject*;
+  auto StaticConstructObject(UClass* object_class, UObject* outer = nullptr, FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> UObject*;
 
   template<typename T>
-  auto ConstructObject(UObject* outer = GetTransientPackage(), FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr, void* extra_ = nullptr, void* extra__ = nullptr) -> T* {
+  auto ConstructObject(UObject* outer = GetTransientPackage(), FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> T* {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
     return static_cast<T*>(StaticConstructObject(T::StaticClass(), outer, name, object_flags, template_, error, sub_object_root, graph));
   }
