@@ -22,8 +22,9 @@ add_library(dismod SHARED
   src/hooks/engine/load_package_async.cpp
   src/hooks/engine/static_load_object.cpp
   src/hooks/engine/static_construct_object.cpp
-  src/hooks/render/end_scene.cpp
+  src/hooks/engine/spawn_actor.cpp
   
+  src/hooks/render/end_scene.cpp
   src/render/render.cpp
 
   external/imgui/imgui.cpp

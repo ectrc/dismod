@@ -76,38 +76,12 @@ namespace render{
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("adsasd");
-    
-    // ImGui::BeginListBox("Pawns", ImVec2(0, 200.0f));
-
-    // static auto cached_pawn_names = std::map<int32_t , std::string>();
-
-    // const auto pawns = engine::FindObjects<ADishonoredNPCPawn>();
-    // for (size_t i = 0; i < pawns.size(); ++i) {
-    //   auto pawn = pawns[i];
-    //   if (pawn == nullptr || pawn->IsPendingKill()) continue;
-    //   ImGui::PushID(i);
-
-    //   FVector copied_loc;
-    //   memcpy(&copied_loc, &pawn->Location, sizeof(FVector));
-    //   cached_pawn_names[pawn->ObjectInternalInteger] = pawn->GetName();
-      
-    //   ImGui::Text("%s Location: (%.2f, %.2f, %.2f)", cached_pawn_names[pawn->ObjectInternalInteger], copied_loc.X, copied_loc.Y, copied_loc.Z);
-    //   // FVector2D screen_position = world_to_screen(device, pawn->Location);
-    //   // if (screen_position.X >= 0.0f && screen_position.Y >= 0.0f && screen_position.X <= width && screen_position.Y <= height) {
-    //   //   ImGui::SetCursorPos(screen_position);
-    //   //   ImGui::Text("%s", *pawn->GetName().ToString());
-    //   // }
-
-    //   ImGui::PopID();
-    // }
-    // ImGui::EndListBox();
-
-    static const auto state = get_state();
-    ImGui::Text("%s Location: (%d, %d, %d)", state->pawn->GetName(),
-                state->pawn->Location.X, state->pawn->Location.Y, state->pawn->Location.Z);
-
-    ImGui::End();
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::GetBackgroundDrawList()->AddRectFilled(
+      ImVec2(center.x - 50, center.y - 50),
+      ImVec2(center.x + 50, center.y + 50),
+      IM_COL32(255, 0, 0, 255)
+    );
 
     ImGui::Render();
     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());

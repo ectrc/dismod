@@ -5,6 +5,7 @@
 #include "hooks/engine/load_package_async.h"
 #include "hooks/engine/static_load_object.h"
 #include "hooks/engine/static_construct_object.h"
+#include "hooks/engine/spawn_actor.h"
 #include "hooks/render/end_scene.h"
 
 #include "engine/engine.h"
@@ -24,13 +25,33 @@ auto __stdcall thread(void* module) -> void {
   state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
   state->controller = reinterpret_cast<ADishonoredPlayerController*>(state->pawn->Controller);
 
+  LOG("Pawn location: {}", state->pawn->Location.ToString());
+
   { 
     process_event_hook::instance()->hook_.enable();
     load_package_hook::instance()->hook_.enable();
     load_package_async_hook::instance()->hook_.enable();
     static_load_object_hook::instance()->hook_.enable();
     static_construct_object_hook::instance()->hook_.enable();
-    end_scene_hook::instance()->hook_.enable();
+    spawn_actor_hook::instance()->hook_.enable();
+    // end_scene_hook::instance()->hook_.enable();
+
+    while (GetAsyncKeyState(VK_INSERT) == 0) {      
+      const auto tweaks_base = engine::FindObject<UDisTweaks_NPCPawn>("Twk_Pawn_LadyEmily.Pwn_LadyEmily_TowerEmpress");
+      if (tweaks_base) {
+        LOG("Found tweaks base: {}", tweaks_base->GetFullName());
+        const auto actor = engine::SpawnActor(tweaks_base, EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &state->pawn->Location);
+        if (actor) {
+          LOG("Successfully spawned actor: {}", actor->Location.ToString());
+        } else {
+          LOG("Failed to spawn actor!");
+        }
+      } else {
+        LOG("Failed to find tweaks base!");
+      }
+
+      Sleep(500);
+    }
 
     while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
   }
@@ -44,8 +65,9 @@ void __stdcall unload(void* module) {
   load_package_async_hook::instance()->hook_.disable();
   static_load_object_hook::instance()->hook_.disable();
   static_construct_object_hook::instance()->hook_.disable();
-  end_scene_hook::instance()->hook_.disable();
-  render::cleanup();
+  spawn_actor_hook::instance()->hook_.disable();
+  // end_scene_hook::instance()->hook_.disable();
+  // render::cleanup();
 
   LOG("Unloaded!");
 }

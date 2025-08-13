@@ -169,6 +169,21 @@ namespace engine {
 
     return nullptr;
   }
+
+  auto SpawnActor(
+    UDisTweaksBase* base,
+    EeDisTweaksSpawnType spawn_type,
+    FName in_name = 0,
+    const FVector* location = nullptr,
+    const FRotator* rotation = nullptr,
+    AActor* template_actor = nullptr,
+    uint32_t no_collision_fail = 0,
+    uint32_t remote_owned = 1,
+    AActor* owner = nullptr,
+    APawn* instigator = nullptr,
+    uint32_t no_fail = 0,
+    uint32_t out_of_bend_time = 0
+  ) -> AActor*;
 }
 
 #endif
