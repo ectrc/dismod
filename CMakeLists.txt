@@ -15,8 +15,10 @@ add_subdirectory(external/sdk)
 
 add_library(dismod SHARED
   library.cpp
+
   src/engine/engine.cpp
   src/engine/state.cpp
+
   src/hooks/engine/process_event.cpp
   src/hooks/engine/load_package.cpp
   src/hooks/engine/load_package_async.cpp
@@ -26,6 +28,8 @@ add_library(dismod SHARED
   
   src/hooks/render/end_scene.cpp
   src/render/render.cpp
+
+  src/mods/spawn.cpp
 
   external/imgui/imgui.cpp
   external/imgui/imgui_draw.cpp

@@ -13,6 +13,8 @@
 
 #include "render/render.h"
 
+#include "mods/spawn.h"
+
 auto __stdcall thread(void* module) -> void {
   CLEAR_CONSOLE();
   LOG("Welcome!");
@@ -25,8 +27,6 @@ auto __stdcall thread(void* module) -> void {
   state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
   state->controller = reinterpret_cast<ADishonoredPlayerController*>(state->pawn->Controller);
 
-  LOG("Pawn location: {}", state->pawn->Location.ToString());
-
   { 
     process_event_hook::instance()->hook_.enable();
     load_package_hook::instance()->hook_.enable();
@@ -34,24 +34,9 @@ auto __stdcall thread(void* module) -> void {
     static_load_object_hook::instance()->hook_.enable();
     static_construct_object_hook::instance()->hook_.enable();
     spawn_actor_hook::instance()->hook_.enable();
-    // end_scene_hook::instance()->hook_.enable();
+    end_scene_hook::instance()->hook_.enable();
 
-    while (GetAsyncKeyState(VK_INSERT) == 0) {      
-      const auto tweaks_base = engine::FindObject<UDisTweaks_NPCPawn>("Twk_Pawn_LadyEmily.Pwn_LadyEmily_TowerEmpress");
-      if (tweaks_base) {
-        LOG("Found tweaks base: {}", tweaks_base->GetFullName());
-        const auto actor = engine::SpawnActor(tweaks_base, EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &state->pawn->Location);
-        if (actor) {
-          LOG("Successfully spawned actor: {}", actor->Location.ToString());
-        } else {
-          LOG("Failed to spawn actor!");
-        }
-      } else {
-        LOG("Failed to find tweaks base!");
-      }
-
-      Sleep(500);
-    }
+    // mods::spawn_test_pawn();
 
     while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
   }
@@ -66,8 +51,8 @@ void __stdcall unload(void* module) {
   static_load_object_hook::instance()->hook_.disable();
   static_construct_object_hook::instance()->hook_.disable();
   spawn_actor_hook::instance()->hook_.disable();
-  // end_scene_hook::instance()->hook_.disable();
-  // render::cleanup();
+  end_scene_hook::instance()->hook_.disable();
+  render::cleanup();
 
   LOG("Unloaded!");
 }
