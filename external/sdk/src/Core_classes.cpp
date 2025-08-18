@@ -23,7 +23,7 @@
 
 class TArray<class UObject*>* UObject::GObjObjects()
 {
-	return reinterpret_cast<TArray<UObject*>*>(GObjects);
+	return reinterpret_cast<TArray<UObject*>*>(gobjects);
 }
 
 std::string UObject::GetName()

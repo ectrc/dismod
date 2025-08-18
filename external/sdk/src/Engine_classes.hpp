@@ -10807,8 +10807,10 @@ public:
 	int32_t                                            LightMapResolution;                            // 0x0068 (0x0004) [0x0000000000000001] (CPF_Edit)    
 	int32_t                                            LightMapCoordinateIndex;                       // 0x006C (0x0004) [0x0000000000000001] (CPF_Edit)    
 	uint8_t                                            UnknownData02[0x18];                            // 0x0070 (0x0018) MISSED OFFSET
-	class URB_BodySetup*                               BodySetup;                                     // 0x0088 (0x0004) [0x0000000004000001] (CPF_Edit | CPF_EditInline)
-	uint8_t                                            UnknownData03[0x34];                            // 0x008C (0x0034) MISSED OFFSET
+  class URB_BodySetup*                               BodySetup;                                     // 0x0088 (0x0004) [0x0000000004000001] (CPF_Edit | CPF_EditInline)
+	FBoxSphereBounds                                   Bounds;
+	TArray<void*>                                      PhysMesh;
+	TArray<FVector>                                    PhysMeshScale3D;
 	uint32_t                                           UseSimpleLineCollision : 1;                    // 0x00C0 (0x0004) [0x0000000000000001] [0x00000001] (CPF_Edit)
 	uint32_t                                           UseSimpleBoxCollision : 1;                     // 0x00C4 (0x0004) [0x0000000000000001] [0x00000001] (CPF_Edit)
 	uint32_t                                           UseSimpleRigidBodyCollision : 1;               // 0x00C8 (0x0004) [0x0000000000000001] [0x00000001] (CPF_Edit)

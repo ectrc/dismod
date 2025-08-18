@@ -25,6 +25,9 @@ add_library(dismod SHARED
   src/hooks/engine/static_load_object.cpp
   src/hooks/engine/static_construct_object.cpp
   src/hooks/engine/spawn_actor.cpp
+
+  src/hooks/sound/load_bank.cpp
+  src/hooks/sound/fire_dialog.cpp
   
   src/hooks/render/end_scene.cpp
   src/render/render.cpp

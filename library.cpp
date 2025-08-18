@@ -6,6 +6,8 @@
 #include "hooks/engine/static_load_object.h"
 #include "hooks/engine/static_construct_object.h"
 #include "hooks/engine/spawn_actor.h"
+#include "hooks/sound/load_bank.h"
+#include "hooks/sound/fire_dialog.h"
 #include "hooks/render/end_scene.h"
 
 #include "engine/engine.h"
@@ -20,8 +22,8 @@ auto __stdcall thread(void* module) -> void {
   LOG("Welcome!");
 
   const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
-  GObjects = reinterpret_cast<TArray<UObject*>*>(base + 0x1023630);
-  GNames = reinterpret_cast<TArray<FNameEntry*>*>(base + 0x1035674);
+  gobjects = reinterpret_cast<TArray<UObject*>*>(base + 0x1023630);
+  gnames = reinterpret_cast<TArray<FNameEntry*>*>(base + 0x1035674);
 
   const auto state = get_state();
   state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
@@ -35,6 +37,15 @@ auto __stdcall thread(void* module) -> void {
     static_construct_object_hook::instance()->hook_.enable();
     spawn_actor_hook::instance()->hook_.enable();
     end_scene_hook::instance()->hook_.enable();
+    load_bank_hook::instance()->hook_.enable();
+    fire_dialog_hook::instance()->hook_.enable();
+    
+    for (UObject* obj : *gobjects) {
+      if (obj == nullptr) continue;
+      if (!obj->IsA<UDisTweaks_UsableObject>()) continue;
+      const auto usable = static_cast<UDisTweaks_UsableObject*>(obj);
+      LOG("UsableObject: {}", usable->GetFullName());
+    }
 
     // mods::spawn_test_pawn();
 
@@ -52,6 +63,8 @@ void __stdcall unload(void* module) {
   static_construct_object_hook::instance()->hook_.disable();
   spawn_actor_hook::instance()->hook_.disable();
   end_scene_hook::instance()->hook_.disable();
+  load_bank_hook::instance()->hook_.disable();
+  fire_dialog_hook::instance()->hook_.disable();
   render::cleanup();
 
   LOG("Unloaded!");

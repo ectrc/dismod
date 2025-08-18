@@ -17,8 +17,8 @@
 # ========================================================================================= #
 */
 
-class TArray<class UObject*>* GObjects{};
-class TArray<class FNameEntry*>* GNames{};
+class TArray<class UObject*>* gobjects{};
+class TArray<class FNameEntry*>* gnames{};
 
 /*
 # ========================================================================================= #

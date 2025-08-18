@@ -112,7 +112,7 @@ namespace engine {
   auto FindObjects(const char* name, bool exact = false) -> TArray<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
     TArray<T*> result;
-    for (auto object : *GObjects) {
+    for (auto object : *gobjects) {
       if (object && object->IsA(T::StaticClass())) {
         std::string current_object_name = object->GetFullName();
         if (current_object_name.find("Default__") != std::string::npos) {
@@ -150,7 +150,7 @@ namespace engine {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
     TArray<T*> result;
-    for (auto object : *GObjects) {
+    for (auto object : *gobjects) {
       if (object && object->IsA(T::StaticClass()) && object->GetNameCPP().find("Default_") == std::string::npos) {
         result.push_back(static_cast<T*>(object));
       }

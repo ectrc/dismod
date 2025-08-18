@@ -733,8 +733,8 @@ public:
 	}
 };
 
-extern class TArray<class UObject*>* GObjects;
-extern class TArray<class FNameEntry*>* GNames;
+extern class TArray<class UObject*>* gobjects;
+extern class TArray<class FNameEntry*>* gnames;
 
 /*
 # ========================================================================================= #
@@ -827,7 +827,7 @@ public:
 public:
 	static TArray<FNameEntry*>* Names()
 	{
-		TArray<FNameEntry*>* recastedArray = reinterpret_cast<TArray<FNameEntry*>*>(GNames);
+		TArray<FNameEntry*>* recastedArray = reinterpret_cast<TArray<FNameEntry*>*>(gnames);
 		return recastedArray;
 	}
 
