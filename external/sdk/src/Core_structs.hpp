@@ -25,9 +25,13 @@
 // 0x000C
 struct FRotator
 {
-	int32_t                                            Pitch;                                         // 0x0000 (0x0004) [0x0000000000000001] (CPF_Edit)    
+	int32_t                                            Pitch;                                         // 0x0000 (0x0004) [0x0000000000000001] (CPF_Edit)    ##
 	int32_t                                            Yaw;                                           // 0x0004 (0x0004) [0x0000000000000001] (CPF_Edit)    
 	int32_t                                            Roll;                                          // 0x0008 (0x0004) [0x0000000000000001] (CPF_Edit)    
+
+  auto ToString() const -> std::string {
+    return "FRotator(" + std::to_string(Pitch) + ", " + std::to_string(Yaw) + ", " + std::to_string(Roll) + ")";
+  }
 };
 
 // ScriptStruct Core.Object.Vector
@@ -83,6 +87,13 @@ struct FVector
 struct FPlane : FVector
 {
 	float                                              W;                                             // 0x000C (0x0004) [0x0000000000000001] (CPF_Edit)    
+
+  FPlane() : FVector(), W(0.0f) {}
+  FPlane(float x, float y, float z, float w) : FVector(x, y, z), W(w) {}
+
+  auto ToString() const -> std::string {
+    return "FPlane(" + FVector::ToString() + ", " + std::to_string(W) + ")";
+  }
 };
 
 // ScriptStruct Core.Object.Guid
@@ -222,6 +233,50 @@ struct FMatrix
 	struct FPlane                                      YPlane;                                        // 0x0010 (0x0010) [0x0000000000000001] (CPF_Edit)    
 	struct FPlane                                      ZPlane;                                        // 0x0020 (0x0010) [0x0000000000000001] (CPF_Edit)    
 	struct FPlane                                      WPlane;                                        // 0x0030 (0x0010) [0x0000000000000001] (CPF_Edit)    
+
+  auto to_string() const -> std::string {
+    return "FMatrix(" + XPlane.ToString() + ", " + YPlane.ToString() + ", " + ZPlane.ToString() + ", " + WPlane.ToString() + ")";
+  }
+
+  FMatrix operator*(const FMatrix& Other) const {
+    FMatrix Result;
+
+    // Row-major multiplication: Result[i][j] = sum_k (this[i][k] * Other[k][j])
+    auto mul_row_col = [&](const FPlane& Row, int ColIndex) -> float {
+        switch (ColIndex) {
+            case 0: return Row.X * Other.XPlane.X + Row.Y * Other.YPlane.X + Row.Z * Other.ZPlane.X + Row.W * Other.WPlane.X;
+            case 1: return Row.X * Other.XPlane.Y + Row.Y * Other.YPlane.Y + Row.Z * Other.ZPlane.Y + Row.W * Other.WPlane.Y;
+            case 2: return Row.X * Other.XPlane.Z + Row.Y * Other.YPlane.Z + Row.Z * Other.ZPlane.Z + Row.W * Other.WPlane.Z;
+            case 3: return Row.X * Other.XPlane.W + Row.Y * Other.YPlane.W + Row.Z * Other.ZPlane.W + Row.W * Other.WPlane.W;
+        }
+        return 0.f;
+    };
+
+    Result.XPlane = { mul_row_col(XPlane, 0), mul_row_col(XPlane, 1), mul_row_col(XPlane, 2), mul_row_col(XPlane, 3) };
+    Result.YPlane = { mul_row_col(YPlane, 0), mul_row_col(YPlane, 1), mul_row_col(YPlane, 2), mul_row_col(YPlane, 3) };
+    Result.ZPlane = { mul_row_col(ZPlane, 0), mul_row_col(ZPlane, 1), mul_row_col(ZPlane, 2), mul_row_col(ZPlane, 3) };
+    Result.WPlane = { mul_row_col(WPlane, 0), mul_row_col(WPlane, 1), mul_row_col(WPlane, 2), mul_row_col(WPlane, 3) };
+
+    return Result;
+  }
+
+  FMatrix negative() const {
+    return FMatrix{
+      { -XPlane.X, -XPlane.Y, -XPlane.Z, -XPlane.W },
+      { -YPlane.X, -YPlane.Y, -YPlane.Z, -YPlane.W },
+      { -ZPlane.X, -ZPlane.Y, -ZPlane.Z, -ZPlane.W },
+      { -WPlane.X, -WPlane.Y, -WPlane.Z, -WPlane.W }
+    };
+  }
+
+  FMatrix transpose() const {
+    FMatrix Transposed;
+    Transposed.XPlane = { XPlane.X, YPlane.X, ZPlane.X, WPlane.X };
+    Transposed.YPlane = { XPlane.Y, YPlane.Y, ZPlane.Y, WPlane.Y };
+    Transposed.ZPlane = { XPlane.Z, YPlane.Z, ZPlane.Z, WPlane.Z };
+    Transposed.WPlane = { XPlane.W, YPlane.W, ZPlane.W, WPlane.W };
+    return Transposed;
+  }
 };
 
 // ScriptStruct Core.Object.BoxSphereBounds

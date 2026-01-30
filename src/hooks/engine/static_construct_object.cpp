@@ -25,18 +25,11 @@ static_construct_object_hook::static_construct_object_hook() {
 
 auto __cdecl static_construct_object_hook::trampoline(UClass* object_class, UObject* outer, FName name, DWORD object_flags, UObject* template_, void* error, UObject* sub_object_root, void* graph, int a1, int a2) -> UObject* {
 #if LOG_SCO
-  LOG("StaticConstructObject({}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-    object_class != nullptr ? object_class->GetName() : "nullptr", 
-    outer != nullptr ? outer->GetName() : "nullptr", 
-    name.ToString(),
-    object_flags,
-    template_ != nullptr ? template_->GetName() : "nullptr",
-    error != nullptr ? "error" : "nullptr",
-    sub_object_root != nullptr ? sub_object_root->GetName() : "nullptr",
-    graph != nullptr ? "graph" : "nullptr",
-    a1,
-    a2
-  );
+  LOG("StaticConstructObject({}, {} {})",
+    object_class != nullptr ? object_class->GetFullName() : "nullptr",
+    outer != nullptr ? outer->GetFullName() : "nullptr",
+    name.ToString()
+    );
 #endif
 
   return static_construct_object_hook::instance()->hook_.original()(object_class, outer, name, object_flags, template_, error, sub_object_root, graph, a1, a2);

@@ -1,5 +1,5 @@
-#ifndef spawn_actor_h
-#define spawn_actor_h
+#ifndef spawn_actor_by_tweaks_h
+#define spawn_actor_by_tweaks_h
 
 #include "hook.h"
 
@@ -8,9 +8,9 @@
 
 #include "engine/engine.h"
 
-typedef AActor* (__thiscall *spawn_actor_t)(
-  UWorld* base,
-  UClass* class_,
+typedef AActor* (__thiscall *spawn_actor_from_tweaks_t)(
+  UDisTweaksBase* base,
+  EeDisTweaksSpawnType spawn_type,
   FName in_name,
   const FVector* location,
   const FRotator* rotation,
@@ -20,19 +20,18 @@ typedef AActor* (__thiscall *spawn_actor_t)(
   AActor* owner,
   APawn* instigator,
   uint32_t no_fail,
-  uint32_t out_of_bend_time,
-  void* init_func
+  uint32_t out_of_bend_time
 );
 
-class spawn_actor_hook {
+class spawn_actor_from_tweaks_hook {
 public:
-  spawn_actor_hook();
-  static auto instance() -> std::shared_ptr<spawn_actor_hook>;
+  spawn_actor_from_tweaks_hook();
+  static auto instance() -> std::shared_ptr<spawn_actor_from_tweaks_hook>;
 
 #ifdef __INTELLISENSE__
   static auto trampoline(
-    UWorld* base,
-    UClass* class_,
+    UDisTweaksBase* base,
+    EeDisTweaksSpawnType spawn_type,
     FName in_name,
     const FVector* location,
     const FRotator* rotation,
@@ -42,13 +41,12 @@ public:
     AActor* owner,
     APawn* instigator,
     uint32_t no_fail,
-    uint32_t out_of_bend_time,
-    void* init_func
+    uint32_t out_of_bend_time
   ) -> AActor*;
 #else
   static auto __thiscall trampoline(
-    UWorld* base,
-    UClass* class_,
+    UDisTweaksBase* base,
+    EeDisTweaksSpawnType spawn_type,
     FName in_name,
     const FVector* location,
     const FRotator* rotation,
@@ -58,15 +56,14 @@ public:
     AActor* owner,
     APawn* instigator,
     uint32_t no_fail,
-    uint32_t out_of_bend_time,
-    void* init_func
+    uint32_t out_of_bend_time
   ) -> AActor*;
 #endif
 
 public:
-  base_hook<spawn_actor_t> hook_;
+  base_hook<spawn_actor_from_tweaks_t> hook_;
 private:
-  static std::shared_ptr<spawn_actor_hook> instance_;
+  static std::shared_ptr<spawn_actor_from_tweaks_hook> instance_;
 };
 
 #endif

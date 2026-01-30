@@ -103,7 +103,7 @@ namespace engine {
   auto StaticConstructObject(UClass* object_class, UObject* outer = nullptr, FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> UObject*;
 
   template<typename T>
-  auto ConstructObject(UObject* outer = GetTransientPackage(), FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> T* {
+  auto ConstructObject(UObject* outer = nullptr, FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> T* {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
     return static_cast<T*>(StaticConstructObject(T::StaticClass(), outer, name, object_flags, template_, error, sub_object_root, graph));
   }
@@ -149,6 +149,10 @@ namespace engine {
   auto FindObjects() -> TArray<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
+    if (!gobjects) {
+      return TArray<T*>();
+    }
+
     TArray<T*> result;
     for (auto object : *gobjects) {
       if (object && object->IsA(T::StaticClass()) && object->GetNameCPP().find("Default_") == std::string::npos) {
@@ -170,7 +174,7 @@ namespace engine {
     return nullptr;
   }
 
-  auto SpawnActor(
+  auto spawn_actor_by_tweaks(
     UDisTweaksBase* base,
     EeDisTweaksSpawnType spawn_type,
     FName in_name = 0,
@@ -183,6 +187,22 @@ namespace engine {
     APawn* instigator = nullptr,
     uint32_t no_fail = 0,
     uint32_t out_of_bend_time = 0
+  ) -> AActor*;
+
+  auto spawn_actor(
+    UWorld* base,
+    UClass* class_,
+    FName in_name = 0,
+    const FVector* location = nullptr,
+    const FRotator* rotation = nullptr,
+    AActor* template_actor = nullptr,
+    uint32_t no_collision_fail = 0,
+    uint32_t remote_owned = 1,
+    AActor* owner = nullptr,
+    APawn* instigator = nullptr,
+    uint32_t no_fail = 0,
+    uint32_t out_of_bend_time = 0,
+    void* init_func = nullptr
   ) -> AActor*;
 }
 

@@ -55,7 +55,7 @@ public:
       return false;
     }
 
-    LOG("[{}] hook placed successfully", this->tag_);
+    LOG("[{}] hook placed successfully at {}", this->tag_, (void*)this->target_);
     return true;
   }
 

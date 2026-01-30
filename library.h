@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <cstdint>
+#include <numbers>
 
 #include "logger.h"
 

@@ -22,7 +22,7 @@ typedef UObject* (__cdecl *static_construct_object_t)(
   int a2
 );
 
-#define LOG_SCO 0
+#define LOG_SCO 0 // do not enable it crashes the game
 #define LOG_SCO_ME 0
 
 class static_construct_object_hook {

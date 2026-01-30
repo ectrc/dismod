@@ -13,7 +13,7 @@ auto spawn_actor_hook::instance() -> std::shared_ptr<spawn_actor_hook> {
 spawn_actor_hook::spawn_actor_hook() {
   this->hook_ = base_hook<spawn_actor_t>{
     "spoawn actor",
-    hat::compile_signature<"55 8B EC 33 C0 F6 41">(),
+    hat::compile_signature<"55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 89 4D ? C7 45 ? 00 00 00 00 E8">(),
     this->trampoline
   };
 
@@ -24,8 +24,8 @@ spawn_actor_hook::spawn_actor_hook() {
 }
 
 auto __thiscall spawn_actor_hook::trampoline(
-  UDisTweaksBase* base,
-  EeDisTweaksSpawnType spawn_type,
+  UWorld* base,
+  UClass* class_,
   FName in_name,
   const FVector* location,
   const FRotator* rotation,
@@ -35,13 +35,12 @@ auto __thiscall spawn_actor_hook::trampoline(
   AActor* owner,
   APawn* instigator,
   uint32_t no_fail,
-  uint32_t out_of_bend_time
+  uint32_t out_of_bend_time,
+  void* init_func
 ) -> AActor* {
-  LOG("SpawnActor: {} {} {}", base->GetFullName(), (uint8_t)spawn_type, in_name.ToString());
-
   return spawn_actor_hook::instance()->hook_.original()(
     base,
-    spawn_type,
+    class_,
     in_name,
     location,
     rotation,
@@ -51,6 +50,7 @@ auto __thiscall spawn_actor_hook::trampoline(
     owner,
     instigator,
     no_fail,
-    out_of_bend_time
+    out_of_bend_time,
+    init_func
   );
 }

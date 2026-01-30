@@ -16,31 +16,23 @@ add_subdirectory(external/sdk)
 add_library(dismod SHARED
   library.cpp
 
-  src/engine/engine.cpp
-  src/engine/state.cpp
-
   src/hooks/engine/process_event.cpp
   src/hooks/engine/load_package.cpp
   src/hooks/engine/load_package_async.cpp
   src/hooks/engine/static_load_object.cpp
   src/hooks/engine/static_construct_object.cpp
+  src/hooks/engine/spawn_actor_from_tweaks.cpp
   src/hooks/engine/spawn_actor.cpp
+  src/hooks/engine/engine_tick.cpp
+  src/hooks/dishonored/create_npc_pawn.cpp
+  src/hooks/dishonored/tick_brain.cpp
+  src/hooks/dishonored/init_npc.cpp
 
-  src/hooks/sound/load_bank.cpp
-  src/hooks/sound/fire_dialog.cpp
-  
-  src/hooks/render/end_scene.cpp
-  src/render/render.cpp
+  src/engine/engine.cpp
+  src/engine/state.cpp
+  src/engine/finder.cpp
 
   src/mods/spawn.cpp
-
-  external/imgui/imgui.cpp
-  external/imgui/imgui_draw.cpp
-  external/imgui/imgui_widgets.cpp
-  external/imgui/imgui_demo.cpp
-  external/imgui/imgui_tables.cpp
-  external/imgui/backends/imgui_impl_dx9.cpp
-  external/imgui/backends/imgui_impl_win32.cpp
 )
 target_include_directories(dismod PUBLIC include src 
   external/imgui

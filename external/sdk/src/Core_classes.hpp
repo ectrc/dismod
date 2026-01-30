@@ -193,6 +193,8 @@ enum class EDistributionVectorMirrorFlags : uint8_t
 # ========================================================================================= #
 */
 
+class UFunction;
+
 // Class Core.Object
 // 0x0038
 class UObject
@@ -383,7 +385,7 @@ public:
 	static struct FRotator OrthoRotation(const struct FVector& X, const struct FVector& Y, const struct FVector& Z);
 	static struct FRotator RotRand(bool optionalBRoll);
 	static void GetUnAxes(const struct FRotator& A, struct FVector& outX, struct FVector& outY, struct FVector& outZ);
-	static void GetAxes(const struct FRotator& A, struct FVector& outX, struct FVector& outY, struct FVector& outZ);
+	static void GetAxes(struct FRotator A, struct FVector* X, struct FVector* Y, struct FVector* Z, UFunction* uFnGetAxes = nullptr);
 	static bool ClockwiseFrom_IntInt(int32_t A, int32_t B);
 	static struct FRotator SubtractEqual_RotatorRotator(const struct FRotator& B, struct FRotator& outA);
 	static struct FRotator AddEqual_RotatorRotator(const struct FRotator& B, struct FRotator& outA);

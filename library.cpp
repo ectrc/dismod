@@ -5,15 +5,16 @@
 #include "hooks/engine/load_package_async.h"
 #include "hooks/engine/static_load_object.h"
 #include "hooks/engine/static_construct_object.h"
+#include "hooks/engine/spawn_actor_from_tweaks.h"
 #include "hooks/engine/spawn_actor.h"
-#include "hooks/sound/load_bank.h"
-#include "hooks/sound/fire_dialog.h"
-#include "hooks/render/end_scene.h"
+#include "hooks/engine/engine_tick.h"
+#include "hooks/dishonored/tick_brain.h"
+#include "hooks/dishonored/create_npc_pawn.h"
+#include "hooks/dishonored/init_npc.h"
 
 #include "engine/engine.h"
 #include "engine/state.h"
-
-#include "render/render.h"
+#include "engine/finder.h"
 
 #include "mods/spawn.h"
 
@@ -29,27 +30,24 @@ auto __stdcall thread(void* module) -> void {
   state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
   state->controller = reinterpret_cast<ADishonoredPlayerController*>(state->pawn->Controller);
 
-  { 
+  {
     process_event_hook::instance()->hook_.enable();
     load_package_hook::instance()->hook_.enable();
     load_package_async_hook::instance()->hook_.enable();
     static_load_object_hook::instance()->hook_.enable();
     static_construct_object_hook::instance()->hook_.enable();
+    spawn_actor_from_tweaks_hook::instance()->hook_.enable();
     spawn_actor_hook::instance()->hook_.enable();
-    end_scene_hook::instance()->hook_.enable();
-    load_bank_hook::instance()->hook_.enable();
-    fire_dialog_hook::instance()->hook_.enable();
-    
-    for (UObject* obj : *gobjects) {
-      if (obj == nullptr) continue;
-      if (!obj->IsA<UDisTweaks_UsableObject>()) continue;
-      const auto usable = static_cast<UDisTweaks_UsableObject*>(obj);
-      LOG("UsableObject: {}", usable->GetFullName());
-    }
+    init_npc_hook::instance()->hook_.enable();
+    // tick_brain_hook::instance()->hook_.enable();
+    // engine_tick_hook::instance()->hook_.enable();
+    // create_npc_pawn_hook::instance()->hook_.enable();
 
-    // mods::spawn_test_pawn();
+    mods::spawn_test_pawn();
 
-    while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
+    // while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
+
+    Sleep(100000);
   }
 
   FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
@@ -61,11 +59,12 @@ void __stdcall unload(void* module) {
   load_package_async_hook::instance()->hook_.disable();
   static_load_object_hook::instance()->hook_.disable();
   static_construct_object_hook::instance()->hook_.disable();
+  spawn_actor_from_tweaks_hook::instance()->hook_.disable();
   spawn_actor_hook::instance()->hook_.disable();
-  end_scene_hook::instance()->hook_.disable();
-  load_bank_hook::instance()->hook_.disable();
-  fire_dialog_hook::instance()->hook_.disable();
-  render::cleanup();
+  init_npc_hook::instance()->hook_.disable();
+  // tick_brain_hook::instance()->hook_.disable();
+  // engine_tick_hook::instance()->hook_.disable();
+  // create_npc_pawn_hook::instance()->hook_.disable();
 
   LOG("Unloaded!");
 }

@@ -7,6 +7,7 @@
 #include "hooks/engine/load_package_async.h"
 #include "hooks/engine/static_load_object.h"
 #include "hooks/engine/static_construct_object.h"
+#include "hooks/engine/spawn_actor_from_tweaks.h"
 #include "hooks/engine/spawn_actor.h"
 
 auto engine::LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage* {
@@ -44,7 +45,7 @@ auto engine::StaticConstructObject(UClass* object_class, UObject* outer, FName n
   return static_construct_object_hook::instance()->hook_.original()(object_class, outer, name, object_flags, template_, error, sub_object_root, graph, 0, 0);
 }
 
-auto engine::SpawnActor(
+auto engine::spawn_actor_by_tweaks(
   UDisTweaksBase* base,
   EeDisTweaksSpawnType spawn_type,
   FName in_name,
@@ -58,15 +59,8 @@ auto engine::SpawnActor(
   uint32_t no_fail,
   uint32_t out_of_bend_time
 ) -> AActor* {
-  static FVector default_location(65.728935, -93.170883, 991.594604);
+  static FVector default_location(71.73864, 245.26736  ,1091.2305);
   static FRotator default_rotation(0, 0, 0);
-
-  static const auto world = FindObject<AWorldInfo>();
-  if (!world) {
-    LOG("WorldInfo not found, cannot spawn actor.");
-  } else if (owner == nullptr) {
-    owner = world;
-  }
 
   if (location == nullptr) {
     location = &default_location;
@@ -76,7 +70,7 @@ auto engine::SpawnActor(
     rotation = &default_rotation;
   }
 
-  return spawn_actor_hook::instance()->hook_.original()(
+  return spawn_actor_from_tweaks_hook::instance()->hook_.original()(
     base,
     spawn_type,
     in_name,
@@ -89,5 +83,58 @@ auto engine::SpawnActor(
     instigator,
     no_fail,
     out_of_bend_time
+  );
+}
+
+auto engine::spawn_actor(
+  UWorld* base,
+  UClass* class_,
+  FName in_name,
+  const FVector* location,
+  const FRotator* rotation,
+  AActor* template_actor,
+  uint32_t no_collision_fail,
+  uint32_t remote_owned,
+  AActor* owner,
+  APawn* instigator,
+  uint32_t no_fail,
+  uint32_t out_of_bend_time,
+  void* init_func
+) -> AActor* {
+  static FVector default_location(71.73864, 245.26736  ,1091.2305);
+  static FRotator default_rotation(0, 0, 0);
+
+  static const auto world = FindObject<UWorld>();
+  if (!world) {
+    LOG("WorldInfo not found, cannot spawn actor.");
+    return nullptr;
+  }
+
+  if (base == nullptr) {
+    base = world;
+  }
+
+  if (location == nullptr) {
+    location = &default_location;
+  }
+
+  if (rotation == nullptr) {
+    rotation = &default_rotation;
+  }
+
+  return spawn_actor_hook::instance()->hook_.original()(
+    base,
+    class_,
+    in_name,
+    location,
+    rotation,
+    template_actor,
+    no_collision_fail,
+    remote_owned,
+    owner,
+    instigator,
+    no_fail,
+    out_of_bend_time,
+    init_func
   );
 }

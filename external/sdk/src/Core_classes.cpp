@@ -3506,14 +3506,16 @@ void UObject::GetUnAxes(const struct FRotator& A, struct FVector& X, struct FVec
 // struct FVector                 Y                              (CPF_Parm | CPF_OutParm)
 // struct FVector                 Z                              (CPF_Parm | CPF_OutParm)
 
-void UObject::GetAxes(const struct FRotator& A, struct FVector& X, struct FVector& Y, struct FVector& Z)
-{
-	static UFunction* uFnGetAxes = nullptr;
+#include <iostream>
 
+void UObject::GetAxes(struct FRotator A, struct FVector* X, struct FVector* Y, struct FVector* Z, UFunction* uFnGetAxes)
+{
 	if (!uFnGetAxes)
 	{
 		uFnGetAxes = UFunction::FindFunction("Function Core.Object.GetAxes");
 	}
+
+  std::cout << "Executing GetAxes with function pointer: " << (uintptr_t)uFnGetAxes << std::endl;
 
 	UObject_execGetAxes_Params GetAxes_Params;
 	memset(&GetAxes_Params, 0, sizeof(GetAxes_Params));
