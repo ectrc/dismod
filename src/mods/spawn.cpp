@@ -51,7 +51,7 @@ auto mods::spawn_test_pawn() -> void {
   LOG("brain_spawned: {}", brain_spawned->GetFullName());
   controller->m_pAIBrain = brain_spawned;
 
-  // controller->Possess(actor);
+  controller->Possess(actor);
 
   if (actor->Controller == nullptr) return LOG("actor controller is null :(");
   const auto brain = reinterpret_cast<ADishonoredNPCController*>(actor->Controller)->m_pAIBrain;

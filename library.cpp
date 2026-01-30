@@ -39,7 +39,7 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_from_tweaks_hook::instance()->hook_.enable();
     spawn_actor_hook::instance()->hook_.enable();
     init_npc_hook::instance()->hook_.enable();
-    // tick_brain_hook::instance()->hook_.enable();
+    tick_brain_hook::instance()->hook_.enable();
     // engine_tick_hook::instance()->hook_.enable();
     // create_npc_pawn_hook::instance()->hook_.enable();
 
