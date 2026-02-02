@@ -8,13 +8,17 @@
 #include "hooks/engine/spawn_actor_from_tweaks.h"
 #include "hooks/engine/spawn_actor.h"
 #include "hooks/engine/engine_tick.h"
+
 #include "hooks/dishonored/tick_brain.h"
 #include "hooks/dishonored/create_npc_pawn.h"
 #include "hooks/dishonored/init_npc.h"
+#include "hooks/dishonored/add_new_component.h"
+#include "hooks/dishonored/get_global_ai_brain_manager.h"
 
 #include "engine/engine.h"
 #include "engine/state.h"
 #include "engine/finder.h"
+#include "hooks/dishonored/components/ai_monitor.h"
 
 #include "mods/spawn.h"
 
@@ -40,8 +44,12 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_hook::instance()->hook_.enable();
     init_npc_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
+    add_new_component_hook::instance()->hook_.enable();
+    get_global_ai_brain_manager_hook::instance()->hook_.enable();
     // engine_tick_hook::instance()->hook_.enable();
     // create_npc_pawn_hook::instance()->hook_.enable();
+
+    ai_monitor_init_hook::instance()->hook_.enable();
 
     mods::spawn_test_pawn();
 
@@ -62,7 +70,7 @@ void __stdcall unload(void* module) {
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
   spawn_actor_hook::instance()->hook_.disable();
   init_npc_hook::instance()->hook_.disable();
-  // tick_brain_hook::instance()->hook_.disable();
+  tick_brain_hook::instance()->hook_.disable();
   // engine_tick_hook::instance()->hook_.disable();
   // create_npc_pawn_hook::instance()->hook_.disable();
 
