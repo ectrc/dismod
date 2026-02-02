@@ -1,7 +1,7 @@
 #ifndef add_ai_knowledge_to_component_manager_H
 #define add_ai_knowledge_to_component_manager_H
 
-#include "component_base.h"
+#include "hook.h"
 #include "engine/engine.h"
 
 DEFINE_HOOK(

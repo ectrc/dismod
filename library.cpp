@@ -15,6 +15,8 @@
 
 #include "hooks/dishonored/components/ai_monitor.h"
 #include "hooks/dishonored/components/ai_knowledge.h"
+#include "hooks/dishonored/components/init_sterring.h"
+#include "hooks/dishonored/components/look_at.h"
 
 #include "engine/engine.h"
 #include "engine/state.h"
@@ -44,19 +46,19 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_hook::instance()->hook_.enable();
     init_npc_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
-    // engine_tick_hook::instance()->hook_.enable();
-    // create_npc_pawn_hook::instance()->hook_.enable();
 
     ai_monitor_init_hook::instance()->hook_.enable();
     add_ai_knowledge_to_component_manager_hook::instance()->hook_.enable();
+    init_steering_hook::instance()->hook_.enable();
+    look_at_comp_hook::instance()->hook_.enable();
+    init_brain_hook::instance()->hook_.enable();
 
-    Sleep(2000);
+    get_default_object_hook::instance()->hook_.enable();
+    get_ai_behaviour_tweak_for_slot_hook::instance()->hook_.enable();
+    init_stim_hook::instance()->hook_.enable();
 
-    mods::spawn_test_pawn();
-
-    // while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
-
-    Sleep(100000);
+    mods::spawn_test_pawn(); // blocks
+    Sleep(20000);
   }
 
   FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
@@ -72,8 +74,16 @@ void __stdcall unload(void* module) {
   spawn_actor_hook::instance()->hook_.disable();
   init_npc_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
-  // engine_tick_hook::instance()->hook_.disable();
-  // create_npc_pawn_hook::instance()->hook_.disable();
+
+  ai_monitor_init_hook::instance()->hook_.disable();
+  add_ai_knowledge_to_component_manager_hook::instance()->hook_.disable();
+  init_steering_hook::instance()->hook_.disable();
+  look_at_comp_hook::instance()->hook_.disable();
+  init_brain_hook::instance()->hook_.disable();
+
+  get_default_object_hook::instance()->hook_.disable();
+  get_ai_behaviour_tweak_for_slot_hook::instance()->hook_.disable();
+  init_stim_hook::instance()->hook_.disable();
 
   LOG("Unloaded!");
 }

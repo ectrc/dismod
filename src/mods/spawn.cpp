@@ -7,8 +7,13 @@
 #include "hooks/dishonored/components/ai_monitor.h"
 #include "hooks/dishonored/components/ai_knowledge.h"
 #include "hooks/dishonored/init_npc.h"
+#include "hooks/dishonored/tick_brain.h"
+#include "hooks/dishonored/components/init_sterring.h"
+#include "hooks/dishonored/components/look_at.h"
 
 auto mods::spawn_test_pawn() -> void {
+  while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
+
   const auto world = engine::FindObject<UWorld>();
   if (!world) {
     LOG("Failed to get WORLD!");
@@ -20,8 +25,6 @@ auto mods::spawn_test_pawn() -> void {
     return;
   }
   LOG("found world_info: {}", world_info->GetFullName());
-
-
 
   const auto tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, L"Pwn_CityGuard_MSmall_1_Helm1.Pwn_CityGuard_MSmall_1_Helm1", nullptr, engine::load_flags::memory_reader, nullptr);
   if (tweaks_base == nullptr) {
@@ -54,8 +57,8 @@ auto mods::spawn_test_pawn() -> void {
     return;
   }
   LOG("ark_container: {}", ark_container->GetFullName());
-  brain_spawned->m_pBrainComponentContainer = ark_container;
 
+  brain_spawned->m_pBrainComponentContainer = ark_container;
   controller->m_pAIBrain = brain_spawned;
 
   const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(tweaks_base, EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, nullptr, nullptr, nullptr, 0, 1, controller));
@@ -64,70 +67,87 @@ auto mods::spawn_test_pawn() -> void {
     return;
   }
 
-
-  // controller->Possess(actor);
+  controller->Possess(actor);
   LOG("possessed actor: {}", actor->GetFullName());
+  Sleep(200);
+  LOG("brain initialised: {}", actor->GetFullName());
 
-  LOG("setup 1 took place");
   brain_spawned->m_pOwningController = controller;
-  LOG("setup 2 took place");
   brain_spawned->m_pOwningPawn = actor;
-  LOG("setup 3 took place");
   brain_spawned->m_Home = { .m_Loc = controller->Location, .m_Rot = controller->Rotation };
-  LOG("setup 4 took place");
   brain_spawned->m_BrainFlags[1] = 1;
-  LOG("setup 5 took place {}", (void*)brain_spawned->m_pBrainComponentContainer);
   brain_spawned->m_pBrainComponentContainer->Owner = controller;
-  LOG("setup 6 took place");
   brain_spawned->m_PendingSuspicionLevel = EDisAISuspicionLevel::DAISL_Unsuspecting;
-  LOG("setup 7 took place");
   brain_spawned->m_SuspicionLevel = EDisAISuspicionLevel::DAISL_Unsuspecting;
-  LOG("setup 8 took place");
 
-
-
-  LOG("setup 9 took place");
   brain_spawned->m_pGlobalAIManager = world_info->m_pGlobalAIManager;
-  LOG("setup 10 took place");
   if (brain_spawned->m_pGlobalAIManager->m_pBrainList) brain_spawned->m_pGlobalAI_NextBrain = brain_spawned->m_pGlobalAIManager->m_pBrainList;
-  LOG("setup 11 took place");
   brain_spawned->m_pGlobalAIManager->m_pBrainList = brain_spawned;
-  LOG("setup 12 took place");
-
-  LOG("setup 13 took place");
   brain_spawned->m_pStimManager = brain_spawned->m_pGlobalAIManager->m_pStimManager;
-  LOG("setup 14 took place");
   brain_spawned->m_LookAtRequest = { };
-  LOG("setup 15 took place");
 
-  LOG("setup 16 took place");
   FDisAIMonitorReaction monitor_reaction_component = {};
-  LOG("setup 17 took place");
-  // add_new_component_hook::instance()->hook_.original()(brain_spawned->m_pBrainComponentContainer, &monitor_reaction_component);
-  brain_spawned->m_pBrainComponentContainer->m_Components.push_back(FPointer{reinterpret_cast<uintptr_t>(&monitor_reaction_component)});
-  LOG("setup 18 took place {}", (void*)ai_monitor_init_hook::instance()->hook_.original());
-  // ai_monitor_init_hook::instance()->hook_.original()(&monitor_reaction_component);
   monitor_reaction_component.m_pOwningBrain = brain_spawned;
   monitor_reaction_component.m_pOwner = (uintptr_t)controller;
-
-  LOG("setup 19 took place");
+  brain_spawned->m_pBrainComponentContainer->m_Components.push_back(FPointer{reinterpret_cast<uintptr_t>(&monitor_reaction_component)});
   add_ai_knowledge_to_component_manager_hook::instance()->hook_.original()(brain_spawned->m_pBrainComponentContainer);
-  LOG("setup 20 took place");
 
-  // monitor_reaction_component->
+  brain_spawned->m_pCurrentBehavior = nullptr;
+  brain_spawned->m_BehaviorArray.clear();
 
-   // m;
-  // add_new_component_hook::instance()->hook_.original()();
+  {
+    const auto behave_tweak = (UDisTweaks_AIBehavior_Search*)get_default_object_hook::instance()->hook_.original()(UDisTweaks_AIBehavior_Search::StaticClass(), false);
+    if (!behave_tweak) {
+      LOG("Failed to behave_tweak!");
+      return;
+    }
+    LOG("behave_tweak: {}", behave_tweak->GetFullName());
 
-  // init_npc_hook::instance()->hook_.original()(
-  //   controller,
-  //   tweaks_base->m_pBrainTweak,
-  //   0
-  // );
+    const auto behave_obj = reinterpret_cast<UDishonoredAIBehavior*>(engine::StaticConstructObject(UDishonoredAIBehavior::StaticClass(), brain_spawned));
+    if (!behave_obj) {
+      LOG("Failed to behave!");
+      return;
+    }
+    LOG("behave: {}", behave_obj->GetFullName());
+
+    behave_obj->m_pOwningBrain = brain_spawned;
+    behave_obj->m_pBehaviorTweaks = behave_tweak;
+    behave_obj->m_pGlobalAIMan = brain_spawned->m_pGlobalAIManager;
+
+
+    brain_spawned->m_BehaviorArray.push_back(behave_obj);
+  }
+
+  const auto ai_brain_tweaks = (UDisTweaks_AIBrain*)get_default_object_hook::instance()->hook_.original()(UDisTweaks_AIBrain::StaticClass(), false);
+  if (!ai_brain_tweaks) {
+    LOG("Failed to ai_brain_tweaks!");
+    return;
+  }
+  tweaks_base->m_pBrainTweak = ai_brain_tweaks;
+  LOG("ai_brain_tweaks: {}, length of its behaviours: {}", ai_brain_tweaks->GetFullName(), ai_brain_tweaks->m_BehaviorTweak.size());
+
+  FAIStimStruct_BrainInit ai_brain_stim = { };
+  ai_brain_stim.m_StimID = 11;
+  ai_brain_stim.m_pStimManager = brain_spawned->m_pStimManager;
+  ai_brain_stim.m_pSource = brain_spawned;
+  ai_brain_stim.m_VTable_Pointer_Dummy.Dummy = 0xD33938;
+  init_stim_hook::instance()->hook_.original()(&ai_brain_stim);
+
+  FDisStimRef ref = {};
+  ref.m_pStim = FPointer{(uintptr_t)&ai_brain_stim};
+  ref.m_fDelayTimer = 1.0f;
+  ai_brain_stim.m_RefCount++;
+  brain_spawned->m_StimQueue.push_back(ref);
+
+  tick_brain_hook::instance()->hook_.original()(brain_spawned, 0.0f);
 
   if (actor->Controller == nullptr) return LOG("actor controller is null :(");
   const auto brain = reinterpret_cast<ADishonoredNPCController*>(actor->Controller)->m_pAIBrain;
-  if (brain) {
-    LOG("Brain: {}", brain->GetFullName());
+  if (!brain) {
+    LOG("BRAIN IS NOT INITALISED!!!");
+    return;
   }
+  LOG("Brain: {}", brain->GetFullName());
+
+  // brain->m_bBrainIsInitialized = true;
 }

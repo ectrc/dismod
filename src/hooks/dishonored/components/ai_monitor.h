@@ -1,7 +1,7 @@
 #ifndef ai_monitor_init_h
 #define ai_monitor_init_h
 
-#include "component_base.h"
+#include "hook.h"
 #include "dishonored.h"
 
 DEFINE_HOOK(

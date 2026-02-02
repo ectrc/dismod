@@ -35,7 +35,7 @@ add_library(dismod SHARED
   src/mods/spawn.cpp
         include/dishonored.h
         src/hooks/dishonored/components/ai_monitor.h
-        src/hooks/dishonored/components/component_base.h
+        src/hooks/dishonored/components/look_at.h
 )
 target_include_directories(dismod PUBLIC include src 
   external/imgui
