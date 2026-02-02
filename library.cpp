@@ -12,13 +12,13 @@
 #include "hooks/dishonored/tick_brain.h"
 #include "hooks/dishonored/create_npc_pawn.h"
 #include "hooks/dishonored/init_npc.h"
-#include "hooks/dishonored/add_new_component.h"
-#include "hooks/dishonored/get_global_ai_brain_manager.h"
+
+#include "hooks/dishonored/components/ai_monitor.h"
+#include "hooks/dishonored/components/ai_knowledge.h"
 
 #include "engine/engine.h"
 #include "engine/state.h"
 #include "engine/finder.h"
-#include "hooks/dishonored/components/ai_monitor.h"
 
 #include "mods/spawn.h"
 
@@ -44,12 +44,13 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_hook::instance()->hook_.enable();
     init_npc_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
-    add_new_component_hook::instance()->hook_.enable();
-    get_global_ai_brain_manager_hook::instance()->hook_.enable();
     // engine_tick_hook::instance()->hook_.enable();
     // create_npc_pawn_hook::instance()->hook_.enable();
 
     ai_monitor_init_hook::instance()->hook_.enable();
+    add_ai_knowledge_to_component_manager_hook::instance()->hook_.enable();
+
+    Sleep(2000);
 
     mods::spawn_test_pawn();
 

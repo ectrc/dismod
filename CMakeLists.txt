@@ -27,10 +27,8 @@ add_library(dismod SHARED
   src/hooks/dishonored/create_npc_pawn.cpp
   src/hooks/dishonored/tick_brain.cpp
   src/hooks/dishonored/init_npc.cpp
-  src/hooks/dishonored/get_global_ai_brain_manager.cpp
-  src/hooks/dishonored/add_new_component.cpp
 
-  src/engine/engine.cpp
+        src/engine/engine.cpp
   src/engine/state.cpp
   src/engine/finder.cpp
 

@@ -45,7 +45,7 @@ public: \
     base_hook<HookName##_t> hook_; \
 \
 private: \
-    static std::shared_ptr<HookName##_hook> instance_; \
+    inline static std::shared_ptr<HookName##_hook> instance_; \
 };
 
 
