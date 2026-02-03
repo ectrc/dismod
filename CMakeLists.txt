@@ -23,19 +23,12 @@ add_library(dismod SHARED
   src/hooks/engine/static_construct_object.cpp
   src/hooks/engine/spawn_actor_from_tweaks.cpp
   src/hooks/engine/spawn_actor.cpp
-  src/hooks/engine/engine_tick.cpp
-  src/hooks/dishonored/create_npc_pawn.cpp
-  src/hooks/dishonored/tick_brain.cpp
-  src/hooks/dishonored/init_npc.cpp
 
-        src/engine/engine.cpp
+  src/engine/engine.cpp
   src/engine/state.cpp
   src/engine/finder.cpp
 
   src/mods/spawn.cpp
-        include/dishonored.h
-        src/hooks/dishonored/components/ai_monitor.h
-        src/hooks/dishonored/components/look_at.h
 )
 target_include_directories(dismod PUBLIC include src 
   external/imgui
