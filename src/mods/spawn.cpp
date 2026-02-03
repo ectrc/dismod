@@ -3,7 +3,7 @@
 #include "spawn.h"
 
 #include "engine/engine.h"
-#include "logger.h"t ad
+#include "logger.h"
 
 auto mods::spawn_test_pawn() -> void {
   while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
@@ -74,4 +74,6 @@ auto mods::spawn_test_pawn() -> void {
   controller->m_pAIBrain = brain_spawned;
 
   init_brain_hook::instance()->hook_.original()(brain_spawned, actor, ai_tweaks_base, EDisAISuspicionLevel::DAISL_Unsuspecting);
+
+  Sleep(1000);
 }

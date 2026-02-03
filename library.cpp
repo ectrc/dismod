@@ -34,9 +34,9 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_from_tweaks_hook::instance()->hook_.enable();
 
     init_brain_hook::instance()->hook_.enable();
-    mods::spawn_test_pawn();
+    tick_brain_hook::instance()->hook_.enable();
 
-    Sleep(20000);
+    mods::spawn_test_pawn();
   }
 
   FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
@@ -52,6 +52,7 @@ void __stdcall unload(void* module) {
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
 
   init_brain_hook::instance()->hook_.disable();
+  tick_brain_hook::instance()->hook_.disable();
 
   LOG("Unloaded!");
 }

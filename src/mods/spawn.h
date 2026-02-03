@@ -18,6 +18,19 @@ inline auto __thiscall init_brain_hook::trampoline(UDishonoredAIBrain* brain, AD
     return init_brain_hook::instance()->hook_.original()(brain, pawn, tweaks, suspicion_level);
 }
 
+DEFINE_HOOK(
+    tick_brain,
+    "55 8B EC 56 8B F1 F6 46 ? ? 0F 84",
+    void,
+    UDishonoredAIBrain* brain,
+    float delta
+);
+
+inline auto __thiscall tick_brain_hook::trampoline(UDishonoredAIBrain* brain, float delta) -> void {
+    if (brain == nullptr) return;
+    return tick_brain_hook::instance()->hook_.original()(brain, delta);
+}
+
 namespace mods {
     auto spawn_test_pawn() -> void;
 }
