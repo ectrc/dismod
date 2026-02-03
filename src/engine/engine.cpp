@@ -59,7 +59,7 @@ auto engine::spawn_actor_by_tweaks(
   uint32_t no_fail,
   uint32_t out_of_bend_time
 ) -> AActor* {
-  static FVector default_location(71.73864, 245.26736  ,1091.2305);
+  static FVector default_location(71.73864, 280.26736  ,1091.2305);
   static FRotator default_rotation(0, 0, 0);
 
   if (location == nullptr) {

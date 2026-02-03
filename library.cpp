@@ -37,6 +37,8 @@ auto __stdcall thread(void* module) -> void {
     tick_world_hook::instance()->hook_.enable();
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
+    register_avoidable_hook::instance()->hook_.enable();
+
 
     mods::spawn_test_pawn();
   }
@@ -58,6 +60,7 @@ void __stdcall unload(void* module) {
   tick_world_hook::instance()->hook_.disable();
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
+  register_avoidable_hook::instance()->hook_.disable();
 
   LOG("Unloaded!");
 }

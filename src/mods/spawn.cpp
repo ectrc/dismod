@@ -41,6 +41,12 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   }
   tweaks_base->m_pBrainTweak = ai_tweaks_base;
 
+  const auto spawner = engine::ConstructObject<ADishonoredSpawner>(world);
+  if (!spawner) {
+    LOG("Failed to spawn spawner!");
+    return std::nullopt;
+  }
+
   const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass()));
   if (!controller) {
     LOG("Failed to spawn controller!");
@@ -73,8 +79,9 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   controller->m_pAIBrain = brain;
 
   init_brain_hook::instance()->hook_.original()(brain, actor, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+  register_avoidable_hook::instance()->hook_.original()(actor);
 
-  return controller;
+  return nullptr;
 }
 
 auto mods::spawn_test_pawn() -> void {

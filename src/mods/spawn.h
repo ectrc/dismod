@@ -36,6 +36,18 @@ inline auto __thiscall tick_brain_hook::trampoline(UDishonoredAIBrain* brain, fl
     return tick_brain_hook::instance()->hook_.original()(brain, delta);
 }
 
+DEFINE_HOOK(
+    register_avoidable,
+    "56 8B F1 E8 ? ? ? ? 85 C0 75 ? 8B 86",
+    void,
+    ADishonoredNPCPawn* npc
+);
+
+inline auto __thiscall register_avoidable_hook::trampoline(ADishonoredNPCPawn* npc) -> void {
+    if (npc == nullptr) return;
+    return register_avoidable_hook::instance()->hook_.original()(npc);
+}
+
 namespace mods {
     auto handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest> &requests) -> std::vector<ADishonoredNPCController*>;
     auto handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*>;
