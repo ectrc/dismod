@@ -1,8 +1,13 @@
 #ifndef mods_spawn_h
 #define mods_spawn_h
 
+#include <vector>
+
+#include "engine/state.h"
+
 #include "hook.h"
 #include "sdk.hpp"
+
 
 DEFINE_HOOK(
     init_brain,
@@ -32,6 +37,9 @@ inline auto __thiscall tick_brain_hook::trampoline(UDishonoredAIBrain* brain, fl
 }
 
 namespace mods {
+    auto handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest> &requests) -> std::vector<ADishonoredNPCController*>;
+    auto handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*>;
+
     auto spawn_test_pawn() -> void;
 }
 

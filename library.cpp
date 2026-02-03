@@ -7,6 +7,7 @@
 #include "hooks/engine/static_construct_object.h"
 #include "hooks/engine/spawn_actor_from_tweaks.h"
 #include "hooks/engine/spawn_actor.h"
+#include "hooks/dishonored/world.h"
 
 #include "engine/state.h"
 
@@ -33,6 +34,7 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_hook::instance()->hook_.enable();
     spawn_actor_from_tweaks_hook::instance()->hook_.enable();
 
+    tick_world_hook::instance()->hook_.enable();
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
 
@@ -43,6 +45,8 @@ auto __stdcall thread(void* module) -> void {
 }
 
 void __stdcall unload(void* module) {
+  Sleep(2000);
+
   process_event_hook::instance()->hook_.disable();
   load_package_hook::instance()->hook_.disable();
   load_package_async_hook::instance()->hook_.disable();
@@ -51,6 +55,7 @@ void __stdcall unload(void* module) {
   spawn_actor_hook::instance()->hook_.disable();
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
 
+  tick_world_hook::instance()->hook_.disable();
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
 

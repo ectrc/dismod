@@ -1,66 +1,65 @@
-#include <initializer_list>
+#include <vector>
 
 #include "spawn.h"
 
 #include "engine/engine.h"
 #include "logger.h"
 
-auto mods::spawn_test_pawn() -> void {
-  while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
+auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requests) -> std::vector<ADishonoredNPCController*> {
+  std::vector<ADishonoredNPCController*> results = {};
 
-  const auto world = engine::FindObject<UWorld>();
-  if (!world) {
-    LOG("Failed to get WORLD!");
-    return;
+  for (auto request : requests) {
+    const auto result = ::mods::handle_single_npc_request(world, request);
+    if (!result.has_value()) {
+      LOG("NPC Request failed. npc_tweak={} ai_tweak={}", request.npc_tweaks_name.ToString(), request.ai_tweaks_name.ToString());
+      continue;
+    }
+
+    results.push_back(result.value());
   }
+
+  return results;
+}
+
+auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
     LOG("Failed to get world_info!");
-    return;
+    return std::nullopt;
   }
-  LOG("found world_info: {}", world_info->GetFullName());
 
-  const auto tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, L"Pwn_CityGuard_MSmall_1_Helm1.Pwn_CityGuard_MSmall_1_Helm1", nullptr, engine::load_flags::memory_reader, nullptr);
+  const auto tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, request.npc_tweaks_name.ToWideString().c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
   if (tweaks_base == nullptr) {
     LOG("Failed to load tweaks base!");
-    return;
+    return std::nullopt;
   }
-  LOG("tweaks_base brain tweak {}", tweaks_base->m_pBrainTweak == nullptr ? "is null" : tweaks_base->m_pBrainTweak->GetFullName());
 
-  const auto ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, L"AI_BrainTweaks_Guard.BrainTweaks_Guard", nullptr, engine::load_flags::memory_reader, nullptr);
+  const auto ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, request.ai_tweaks_name.ToWideString().c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
   if (ai_tweaks_base == nullptr) {
     LOG("Failed to load ai_tweaks_base!");
-    return;
+    return std::nullopt;
   }
-  LOG("ai_tweaks_base brain tweak {}", ai_tweaks_base == nullptr ? "is null" : ai_tweaks_base->GetFullName());
   tweaks_base->m_pBrainTweak = ai_tweaks_base;
 
   const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass()));
   if (!controller) {
     LOG("Failed to spawn controller!");
-    return;
+    return std::nullopt;
   }
-  LOG("spawned controller: {} {}", controller->Location.ToString(), controller->GetFullName());
 
   const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(tweaks_base, EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, nullptr, nullptr, nullptr, 0, 1, controller));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
-    return;
+    return std::nullopt;
   }
 
-  const auto brain_spawned = reinterpret_cast<UDishonoredAIBrain *>(engine::StaticConstructObject(ai_tweaks_base->m_pSpawnedObjectClass, controller, "AIBrain"));
-  if (!brain_spawned) {
-    LOG("Failed to brain_spawned!");
-    return;
+  const auto brain = reinterpret_cast<UDishonoredAIBrain *>(engine::StaticConstructObject(tweaks_base->m_pBrainTweak->m_pSpawnedObjectClass, controller, "AIBrain"));
+  if (!brain) {
+    LOG("Failed to spawn brain!");
+    return std::nullopt;
   }
-  LOG("brain_spawned: {}", brain_spawned->GetFullName());
-  const auto ark_container = reinterpret_cast<UArkComponentContainer *>(engine::StaticConstructObject(UArkComponentContainer::StaticClass(), brain_spawned));
-  if (!ark_container) {
-    LOG("Failed to ark_container!");
-    return;
-  }
-  brain_spawned->m_pBrainComponentContainer = ark_container;
 
+  brain->m_pBrainComponentContainer = engine::ConstructObject<UArkComponentContainer>(brain);
   actor->m_SpawnerInfo = FDisSpawnerInfo{};
   actor->m_SpawnerInfo.m_Position = {};
   actor->m_SpawnerInfo.m_Position.m_Loc = actor->Location;
@@ -71,9 +70,18 @@ auto mods::spawn_test_pawn() -> void {
   world_info->m_NextNPCID++;
 
   controller->Possess(actor);
-  controller->m_pAIBrain = brain_spawned;
+  controller->m_pAIBrain = brain;
 
-  init_brain_hook::instance()->hook_.original()(brain_spawned, actor, ai_tweaks_base, EDisAISuspicionLevel::DAISL_Unsuspecting);
+  init_brain_hook::instance()->hook_.original()(brain, actor, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
-  Sleep(1000);
+  return controller;
+}
+
+auto mods::spawn_test_pawn() -> void {
+  while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
+
+  get_state()->event_queue.push({
+    .npc_tweaks_name = L"Pwn_CityGuard_MSmall_1_Helm1.Pwn_CityGuard_MSmall_1_Helm1",
+    .ai_tweaks_name = L"AI_BrainTweaks_Guard.BrainTweaks_Guard",
+  });
 }
