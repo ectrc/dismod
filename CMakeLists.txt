@@ -27,10 +27,11 @@ add_library(dismod SHARED
   src/engine/engine.cpp
   src/engine/state.cpp
 
-        src/mods/spawn.cpp
-        src/hooks/dishonored/world.h
-        src/hooks/dishonored/world.cpp
-        include/queue.h
+  src/mods/spawn.cpp
+  src/hooks/dishonored/world.h
+  src/hooks/dishonored/world.cpp
+  include/queue.h
+  include/dishonored.h
 )
 target_include_directories(dismod PUBLIC include src 
   external/imgui
