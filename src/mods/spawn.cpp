@@ -82,6 +82,6 @@ auto mods::spawn_test_pawn() -> void {
 
   get_state()->event_queue.push({
     .npc_tweaks_name = L"Pwn_CityGuard_MSmall_1_Helm1.Pwn_CityGuard_MSmall_1_Helm1",
-    .ai_tweaks_name = L"AI_BrainTweaks_Thug.BrainTweaks_ThugWhiskey",
+    .ai_tweaks_name = L"AI_BrainTweaks_Guard.BrainTweaks_Guard",
   });
 }
