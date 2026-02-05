@@ -49,6 +49,61 @@ inline auto __thiscall controller_init_npc_hook::trampoline(ADishonoredNPCContro
     return controller_init_npc_hook::instance()->hook_.original()(controller, brain_tweaks, suspicion_level);
 }
 
+struct FStringDictionary {
+    TArray<int> m_Names;
+    TMap<int, unsigned short> m_Dictionary;
+};
+
+DEFINE_HOOK(
+    save_to_dictionary,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 89 75 ? 8B 46 ? 8B 5D",
+    void,
+    FStringDictionary* dictionary,
+    void* archive
+);
+
+inline auto __thiscall save_to_dictionary_hook::trampoline(FStringDictionary* dictionary, void* archive) -> void {
+    if (dictionary == nullptr) return;
+
+    for (auto name : dictionary->m_Names) {
+        // LOG("SAVING NAME {}", FName(name).ToString());
+        if (name > gnames->size() || name == 0) LOG("SUSPICOUS NAME {}", FName(name).ToString());
+    }
+
+    return save_to_dictionary_hook::instance()->hook_.original()(dictionary, archive);
+}
+
+DEFINE_HOOK(
+    fname_tostring,
+    "55 8B EC 51 56 ? ? 57 C7 45 ? 00 00 00 00",
+    FString*,
+    FName* name,
+    FString* result
+);
+
+inline auto __thiscall fname_tostring_hook::trampoline(FName* name, FString* result) -> FString* {
+    LOG("Getting name {} {} {}", name->FNameEntryId, name->ToString(), gnames->size());
+
+    if (name->FNameEntryId < 0) name->FNameEntryId = 0;
+
+    const auto real_result = fname_tostring_hook::instance()->hook_.original()(name, result);
+
+    return real_result;
+}
+
+DEFINE_HOOK(
+    desotry_string_property,
+    "55 8B EC 56 57 8B F9 33 F6 39 77 ? 7E ? 53 8B 5D ? 8B 4F",
+    void,
+    UStrProperty *string, char *Dest
+);
+
+inline auto __thiscall desotry_string_property_hook::trampoline(UStrProperty *string, char *Dest) -> void {
+    LOG("string {} {}", string->GetFullName(), string->Outer->GetFullName());
+
+    return desotry_string_property_hook::instance()->hook_.original()(string, Dest);
+}
+
 namespace mods {
     auto handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest> &requests) -> std::vector<ADishonoredNPCController*>;
     auto handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*>;

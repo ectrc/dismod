@@ -10,6 +10,7 @@
 #include "hooks/dishonored/world.h"
 
 #include "engine/state.h"
+#include "hooks/engine/static_duplicate_object.h"
 #include "hooks/render/end_scene.h"
 
 #include "mods/spawn.h"
@@ -33,6 +34,7 @@ auto __stdcall thread(void* module) -> void {
     load_package_async_hook::instance()->hook_.enable();
     static_load_object_hook::instance()->hook_.enable();
     static_construct_object_hook::instance()->hook_.enable();
+    static_duplicate_object_hook::instance()->hook_.enable();
     spawn_actor_hook::instance()->hook_.enable();
     spawn_actor_from_tweaks_hook::instance()->hook_.enable();
 
@@ -40,6 +42,10 @@ auto __stdcall thread(void* module) -> void {
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
     controller_init_npc_hook::instance()->hook_.enable();
+
+    save_to_dictionary_hook::instance()->hook_.enable();
+    fname_tostring_hook::instance()->hook_.enable();
+    desotry_string_property_hook::instance()->hook_.enable();
 
     end_scene_hook::instance()->hook_.enable();
     process_input_hook::instance()->hook_.enable();
@@ -60,6 +66,7 @@ void __stdcall unload(void* module) {
   load_package_async_hook::instance()->hook_.disable();
   static_load_object_hook::instance()->hook_.disable();
   static_construct_object_hook::instance()->hook_.disable();
+  static_duplicate_object_hook::instance()->hook_.disable();
   spawn_actor_hook::instance()->hook_.disable();
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
 
@@ -67,6 +74,10 @@ void __stdcall unload(void* module) {
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
   controller_init_npc_hook::instance()->hook_.disable();
+
+  save_to_dictionary_hook::instance()->hook_.disable();
+  fname_tostring_hook::instance()->hook_.disable();
+  desotry_string_property_hook::instance()->hook_.disable();
 
   end_scene_hook::instance()->hook_.disable();
   process_input_hook::instance()->hook_.disable();

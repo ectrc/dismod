@@ -43,42 +43,12 @@ namespace engine {
     return result;
   }
 
-  /**
-   * Loads a package and all contained objects that match context flags.
-   *
-   * @param	in Package to load new package into (usually NULL or ULevel->GetOuter())
-   * @param	file_name Name of file on disk
-   * @param	flags Flags controlling loading behavior
-   * @return Loaded package if successful, NULL otherwise
-   */
   auto LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage*;
 
   typedef void (*FAsyncCompletionCallback)(UObject* LinkerRoot, void* CallbackUserData);
-  /**
-   * Asynchronously load a package and all contained objects that match context flags. Non- blocking.
-   *
-   * @param	package_name Name of package to load
-   * @param	completion_callback Callback called on completion of loading
-   * @param	callback_user_data User data passed to callback
-   * @param	required_guid GUID of the package to load, or NULL for "don't care"
-   * @param	package_type A type name associated with this package for later use
-   */
+
   auto LoadPackageAsync(const FString& package_name, FAsyncCompletionCallback completion_callback, void* callback_user_data = nullptr, const FGuid* required_guid = nullptr, FName package_type = FName(0)) -> void;
 
-  /**
-   * Find or load an object by string name with optional outer and filename specifications.
-   * These are optional because the InName can contain all of the necessary information.
-   *
-   * @param object_class The class (or a superclass) of the object to be loaded.
-   * @param outer An optional object to narrow where to find/load the object from
-   * @param outer_name String name of the object. If it's not fully qualified, InOuter and/or Filename will be needed
-   * @param file_name An optional file to load from (or find in the file's package object)
-   * @param load_flags Flags controlling how to handle loading from disk
-   * @param sandbox A list of packages to restrict the search for the object
-   * @param allow_object_reconciliation Whether to allow the object to be found via FindObject in the case of seek free loading
-   *
-   * @return The object that was loaded or found. nullptr for a failure.
-   */
   auto StaticLoadObject(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation = true) -> UObject*;
 
   template<typename T>
@@ -87,25 +57,20 @@ namespace engine {
     return static_cast<T*>(StaticLoadObject(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox));
   }
 
-  /**
-   * Create a new instance of an object. The returned object will be fully initialized. If InFlags contains RF_NeedsLoad (indicating that the object still needs to load its object data from disk), components
-   * are not instantiated (this will instead occur in PostLoad()). The difference between StaticConstructObject and StaticAllocateObject is that StaticConstructObject will also call the class constructor on the object
-   * and instantiate any components.
-   * 
-   * @param object_class The class of the object to create.
-   * @param outer The object to create this object within (the Outer property for the new object will be set to the value specified here).
-   * @param name The name to give the new object. If no value (NAME_None) is specified, the object will be given a unique name in the form of ClassName_#.
-   * @param object_flags The ObjectFlags to assign to the new object. Some flags can affect the behavior of constructing the object.
-   * @param template_ If specified, the property values from this object will be copied to the new object, and the new object's ObjectArchetype value will be set to this object.
-   * @param error The output device to use for logging errors.
-   * @param sub_object_root Only used to when duplicating or instancing objects; in a nested subobject chain, corresponds to the first object that is not a subobject.
-   */
   auto StaticConstructObject(UClass* object_class, UObject* outer = nullptr, FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> UObject*;
 
   template<typename T>
   auto ConstructObject(UObject* outer = nullptr, FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> T* {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
     return static_cast<T*>(StaticConstructObject(T::StaticClass(), outer, name, object_flags, template_, error, sub_object_root, graph));
+  }
+
+  auto StaticDuplicateObject(UObject *SourceObject, UObject *RootObject, UObject *DestOuter, const wchar_t *DestName = nullptr, unsigned __int64 FlagMask = 0xFFFFFFFFFFFFFFFF, UClass *DestClass = 0, unsigned int bMigrateArchetypes = 0) -> UObject*;
+
+  template<typename T>
+  auto DuplicateObject(T* object, UObject* outer = nullptr, const wchar_t *DestName = nullptr, unsigned __int64 FlagMask = 0xFFFFFFFFFFFFFFFF, UClass *DestClass = 0, unsigned int bMigrateArchetypes = 0) -> T* {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+    return static_cast<T*>(StaticDuplicateObject(object, object, outer, DestName, FlagMask, DestClass, bMigrateArchetypes));
   }
 
   template<typename T>

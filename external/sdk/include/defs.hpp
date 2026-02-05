@@ -782,7 +782,7 @@ public:
 	using ElementType = const char;
 	using ElementPointer = ElementType*;
 
-private:
+public:
 	int32_t			FNameEntryId;									// 0x0000 (0x04)
 	int32_t			InstanceNumber;									// 0x0004 (0x04)
 

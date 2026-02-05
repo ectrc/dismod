@@ -23,33 +23,39 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
 }
 
 auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
+  for (auto thing : *gobjects) {
+    if (!thing || !thing->IsA(ADishonoredNPCController::StaticClass())) continue;
+    auto better = (ADishonoredNPCController*)thing;
+
+    if (!better->Pawn) continue;
+    LOG("Controller({} {}), Pawn({} {})", thing->Name.FNameEntryId, thing->Name.InstanceNumber, better->Pawn->Name.FNameEntryId, better->Pawn->Name.InstanceNumber);
+  }
+
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
     LOG("Failed to get world_info!");
     return std::nullopt;
   }
 
-  const auto tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, request.npc_tweaks_name.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
-  if (tweaks_base == nullptr) {
+  const auto loaded_tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, request.npc_tweaks_name.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
+  if (loaded_tweaks_base == nullptr) {
     LOG("Failed to load tweaks base!");
     return std::nullopt;
   }
-  tweaks_base->m_BusyText = L"username123";
-  tweaks_base->m_pInteractableTweaks->m_bAllowedToHighlight = true;
 
-  const auto ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, request.ai_tweaks_name.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
-  if (ai_tweaks_base == nullptr) {
+  const auto loaded_ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, request.ai_tweaks_name.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
+  if (loaded_ai_tweaks_base == nullptr) {
     LOG("Failed to load ai_tweaks_base!");
     return std::nullopt;
   }
-  tweaks_base->m_pBrainTweak = ai_tweaks_base;
+  loaded_tweaks_base->m_pBrainTweak = loaded_ai_tweaks_base;
 
-  const auto faction_tweak = engine::LoadObject<UDisTweaks_Faction>(nullptr, request.faction_tweak.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
-  if (faction_tweak == nullptr) {
+  const auto loaded_faction_tweak = engine::LoadObject<UDisTweaks_Faction>(nullptr, request.faction_tweak.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
+  if (loaded_faction_tweak == nullptr) {
     LOG("Failed to load faction_tweak!");
     return std::nullopt;
   }
-  tweaks_base->m_pFactionTweak = faction_tweak;
+  loaded_tweaks_base->m_pFactionTweak = loaded_faction_tweak;
 
   const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass()));
   if (!controller) {
@@ -57,7 +63,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
 
-  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(tweaks_base, EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, nullptr, nullptr, nullptr, 0, 1, controller));
+  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(loaded_tweaks_base, EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, nullptr, nullptr, nullptr, 0, 1, controller));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
     return std::nullopt;
@@ -72,11 +78,10 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
 
   actor->Controller = controller;
   actor->m_NPCID = world_info->m_NextNPCID;
-
   world_info->m_NextNPCID++;
 
   controller->Possess(actor);
-  controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+  controller_init_npc_hook::instance()->hook_.original()(controller, loaded_tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
   // const auto discover = engine::ConstructObject<UDisSeqAct_ShowLocationDiscovery>(world);
   // discover->m_LocationName = L"Hello :D";
@@ -87,6 +92,12 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   action->m_bSetNewHomeActor = true;
   action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
   controller->OnAIGoToActor(action);
+
+  // const auto chop = engine::ConstructObject<UDisSeqAct_SeverLimb>(world);
+  // action->m_pDestinationActor = get_state()->pawn;
+  // action->m_bSetNewHomeActor = true;
+  // action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
+  // actor->OnSeverLimb(chop);
 
   return controller;
 }

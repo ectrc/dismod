@@ -9,6 +9,7 @@
 #include "hooks/engine/static_construct_object.h"
 #include "hooks/engine/spawn_actor_from_tweaks.h"
 #include "hooks/engine/spawn_actor.h"
+#include "hooks/engine/static_duplicate_object.h"
 
 auto engine::LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage* {
   ::std::wstring file_name_wstr = file_name != nullptr ? file_name : L"nullptr";
@@ -43,6 +44,10 @@ auto engine::StaticConstructObject(UClass* object_class, UObject* outer, FName n
   LOG("StaticConstructObject({}, {}, {})", object_class != nullptr ? object_class->GetName() : "nullptr", outer != nullptr ? outer->GetName() : "nullptr", name.ToString());
 #endif
   return static_construct_object_hook::instance()->hook_.original()(object_class, outer, name, object_flags, template_, error, sub_object_root, graph, 0, 0);
+}
+
+auto engine::StaticDuplicateObject(UObject *SourceObject, UObject *RootObject, UObject *DestOuter, const wchar_t *DestName, unsigned __int64 FlagMask, UClass *DestClass, unsigned int bMigrateArchetypes) -> UObject* {
+  return static_duplicate_object_hook::instance()->hook_.original()(SourceObject, RootObject, DestOuter, DestName, FlagMask, DestClass, bMigrateArchetypes);
 }
 
 auto engine::spawn_actor_by_tweaks(
