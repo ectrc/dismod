@@ -83,10 +83,10 @@ namespace render{
 
 
     if (!draw_enabled.load()) {
-      io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+      io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableGamepad;
       return;
     };
-    io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags = ImGuiConfigFlags_NavEnableGamepad;
 
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();

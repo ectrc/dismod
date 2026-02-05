@@ -30,6 +30,8 @@ struct NPCSpawnRequest {
 };
 
 struct state {
+  bool* use_seek_free_loading;
+
   ThreadSafeQueue<NPCSpawnRequest> event_queue;
 
   ADishonoredPlayerPawn* pawn;

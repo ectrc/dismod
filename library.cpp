@@ -27,6 +27,10 @@ auto __stdcall thread(void* module) -> void {
   const auto state = get_state();
   state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
   state->controller = reinterpret_cast<ADishonoredPlayerController*>(state->pawn->Controller);
+  state->use_seek_free_loading = reinterpret_cast<bool*>(base + 0x101B24C);
+
+  // *state->use_seek_free_loading = false;
+  LOG("use seek free {}", *state->use_seek_free_loading ? "yes" : "no");
 
   {
     process_event_hook::instance()->hook_.enable();

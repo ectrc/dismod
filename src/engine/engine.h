@@ -45,7 +45,7 @@ namespace engine {
 
   auto LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage*;
 
-  typedef void (*FAsyncCompletionCallback)(UObject* LinkerRoot, void* CallbackUserData);
+  typedef void (__cdecl *FAsyncCompletionCallback)(UObject* LinkerRoot, void* CallbackUserData);
 
   auto LoadPackageAsync(const FString& package_name, FAsyncCompletionCallback completion_callback, void* callback_user_data = nullptr, const FGuid* required_guid = nullptr, FName package_type = FName(0)) -> void;
 
