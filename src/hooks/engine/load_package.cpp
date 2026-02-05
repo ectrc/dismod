@@ -29,5 +29,9 @@ auto __cdecl load_package_hook::trampoline(UPackage* in, const wchar_t* file_nam
   
   LOG("LoadPackage({}, {}, {})", in != nullptr ? in->GetPackageName().ToString() : "nullptr", file_name_str, engine::load_flags_to_string(load_flags));
 
+  if (const auto package = engine::LoadPackage(nullptr, L"L_Prison_Script", engine::load_flags::seek_free); package) {
+    if (!(package->ObjectFlags.A & EObjectFlags::RF_RootSet)) package->ObjectFlags.A |= EObjectFlags::RF_RootSet;
+  }
+
   return load_package_hook::instance()->hook_.original()(in, file_name, load_flags);
 }

@@ -2,6 +2,7 @@
 #define mods_spawn_h
 
 #include <vector>
+#include <algorithm>
 
 #include "engine/state.h"
 
@@ -60,6 +61,18 @@ DEFINE_HOOK(
 inline auto __thiscall fname_tostring_hook::trampoline(FName* name, FString* result) -> FString* {
     if (name->FNameEntryId < 0) name->FNameEntryId = 0;
     return fname_tostring_hook::instance()->hook_.original()(name, result);
+}
+
+DEFINE_HOOK(
+    save_load_cmd,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 89 75 ? E8 ? ? ? ? 33 DB 3B C3",
+    void,
+    UDishonoredEngine* engine, int dt
+);
+
+inline auto __thiscall save_load_cmd_hook::trampoline(UDishonoredEngine* engine, int dt) -> void {
+    return;
+    return save_load_cmd_hook::instance()->hook_.original()(engine, dt);
 }
 
 namespace mods {

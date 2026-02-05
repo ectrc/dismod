@@ -41,13 +41,13 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return duplicated;
   };
 
+  const auto package = engine::LoadPackage(nullptr, L"L_Prison_Script", engine::load_flags::seek_free);
+
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
     LOG("Failed to get world_info!");
     return std::nullopt;
   }
-
-  const auto package = engine::LoadPackage(nullptr, L"L_Prison_Script", engine::load_flags::seek_free);
 
   const auto npc_tweak = load_and_duplicate.operator()<UDisTweaks_NPCPawn>(request.npc_tweaks_name);
   if (!npc_tweak.has_value()) {
@@ -77,7 +77,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
 
-  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &spawn_location, nullptr, nullptr, 0, 1, controller));
+  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &spawn_location, nullptr, nullptr, 1, 1, controller));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
     return std::nullopt;
@@ -94,6 +94,8 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   action->m_bSetNewHomeActor = true;
   action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
   controller->OnAIGoToActor(action);
+
+  get_state()->spawned_npcs.push_back(actor->m_NPCID);
 
   // const auto discover = engine::ConstructObject<UDisSeqAct_ShowLocationDiscovery>(world);
   // discover->m_LocationName = L"Hello :D";

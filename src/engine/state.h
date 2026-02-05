@@ -30,10 +30,11 @@ struct NPCSpawnRequest {
 };
 
 struct state {
-  bool* use_seek_free_loading;
+  std::vector<uint64_t> spawned_npcs;
 
   ThreadSafeQueue<NPCSpawnRequest> event_queue;
 
+  bool* use_seek_free_loading;
   ADishonoredPlayerPawn* pawn;
   ADishonoredPlayerController* controller;
   ADishonoredPlayerCamera* camera;
