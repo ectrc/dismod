@@ -3,12 +3,13 @@
 #include "spawn.h"
 
 #include "engine/engine.h"
+#include "sdk.hpp"
 #include "logger.h"
 
 auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requests) -> std::vector<ADishonoredNPCController*> {
   std::vector<ADishonoredNPCController*> results = {};
 
-  for (auto request : requests) {
+  for (const auto& request : requests) {
     const auto result = ::mods::handle_single_npc_request(world, request);
     if (!result.has_value()) {
       LOG("NPC Request failed. npc_tweak={} ai_tweak={}", request.npc_tweaks_name.ToString(), request.ai_tweaks_name.ToString());
@@ -22,6 +23,19 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
 }
 
 auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
+  // for (auto thing : *gobjects) {
+  //   if (!thing || !thing->IsA(ADishonoredNPCController::StaticClass())) continue;
+  //   auto better = (ADishonoredNPCController*)thing;
+  //
+  //   if (!better->Pawn) continue;
+  //   LOG("{} {}", thing->GetFullName(), better->Pawn->GeneratedEvents.size());
+  //
+  //   for (auto event : better->Pawn->GeneratedEvents) {
+  //     if (!event) continue;
+  //     LOG("  {}", event->GetFullName());
+  //   }
+  // }
+
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
     LOG("Failed to get world_info!");
@@ -59,13 +73,6 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
 
-  const auto brain = reinterpret_cast<UDishonoredAIBrain *>(engine::StaticConstructObject(tweaks_base->m_pBrainTweak->m_pSpawnedObjectClass, controller, "AIBrain"));
-  if (!brain) {
-    LOG("Failed to spawn brain!");
-    return std::nullopt;
-  }
-
-  brain->m_pBrainComponentContainer = engine::ConstructObject<UArkComponentContainer>(brain);
   actor->m_SpawnerInfo = FDisSpawnerInfo{};
   actor->m_SpawnerInfo.m_Position = {};
   actor->m_SpawnerInfo.m_Position.m_Loc = actor->Location;
@@ -76,10 +83,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   world_info->m_NextNPCID++;
 
   controller->Possess(actor);
-  controller->m_pAIBrain = brain;
-
-  init_brain_hook::instance()->hook_.original()(brain, actor, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
-  register_avoidable_hook::instance()->hook_.original()(actor);
+  controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
   return nullptr;
 }

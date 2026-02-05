@@ -23033,7 +23033,7 @@ public:
 
 // Class DishonoredGame.DishonoredNPCPawn
 // 0x0548 (0x08AC - 0x0DF4)
-class ADishonoredNPCPawn : public ADisPossessablePawn
+class  ADishonoredNPCPawn : public ADisPossessablePawn
 {
 public:
 	struct FPointer                                    VfTable_IDisInteractableInterface;             // 0x08AC (0x0004) [0x0000000000801002] (CPF_Const | CPF_Native | CPF_NoExport)

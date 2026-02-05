@@ -38,12 +38,13 @@ auto __stdcall thread(void* module) -> void {
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
     register_avoidable_hook::instance()->hook_.enable();
-
+    start_all_components_hook::instance()->hook_.enable();
+    controller_init_npc_hook::instance()->hook_.enable();
 
     mods::spawn_test_pawn();
   }
 
-  FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
+  // FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
 }
 
 void __stdcall unload(void* module) {
@@ -61,7 +62,8 @@ void __stdcall unload(void* module) {
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
   register_avoidable_hook::instance()->hook_.disable();
-
+  start_all_components_hook::instance()->hook_.disable();
+  controller_init_npc_hook::instance()->hook_.disable();
   LOG("Unloaded!");
 }
 
