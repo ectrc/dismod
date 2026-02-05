@@ -78,11 +78,14 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
+  // const auto discover = engine::ConstructObject<UDisSeqAct_ShowLocationDiscovery>(world);
+  // discover->m_LocationName = L"Hello :D";
+  // reinterpret_cast<void(__thiscall*)(UDisSeqAct_ShowLocationDiscovery*)>(((void**)(discover->VfTableObject.Dummy))[0x5D])(discover);
 
   const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
   action->m_pDestinationActor = get_state()->pawn;
   action->m_bSetNewHomeActor = true;
-  action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Walk;
+  action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
   controller->OnAIGoToActor(action);
 
   return controller;

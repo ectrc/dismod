@@ -34,8 +34,8 @@ namespace render {
         .dpi_scale = 1.0f,
         .wants_exit = false,
         .npc_base_tweak = "Twk_Pawn_Executioner.Twk_Pawn_Executioner",
-        .npc_ai_tweak = "AI_BrainTweaks_Civilian.Faction_Conspiracy_Default",
-        .npc_faction_tweak = "DisFaction_Defaults.Faction_Weepers_Default"
+        .npc_ai_tweak = "AI_BrainTweaks_Civilian.BrainTweaks_Civilian",
+        .npc_faction_tweak = "DisFaction_Defaults.Faction_Conspiracy_Default"
     };
 
     inline WNDPROC original_window_proc;
