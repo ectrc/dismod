@@ -44,12 +44,14 @@ auto __stdcall thread(void* module) -> void {
     mods::spawn_test_pawn();
   }
 
-  // FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
+  Sleep(10000);
+  FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
 }
 
 void __stdcall unload(void* module) {
   Sleep(2000);
 
+  //engine
   process_event_hook::instance()->hook_.disable();
   load_package_hook::instance()->hook_.disable();
   load_package_async_hook::instance()->hook_.disable();
@@ -58,12 +60,14 @@ void __stdcall unload(void* module) {
   spawn_actor_hook::instance()->hook_.disable();
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
 
+  // npcs
   tick_world_hook::instance()->hook_.disable();
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
   register_avoidable_hook::instance()->hook_.disable();
   start_all_components_hook::instance()->hook_.disable();
   controller_init_npc_hook::instance()->hook_.disable();
+
   LOG("Unloaded!");
 }
 

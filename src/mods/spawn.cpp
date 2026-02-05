@@ -23,18 +23,18 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
 }
 
 auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
-  // for (auto thing : *gobjects) {
-  //   if (!thing || !thing->IsA(ADishonoredNPCController::StaticClass())) continue;
-  //   auto better = (ADishonoredNPCController*)thing;
-  //
-  //   if (!better->Pawn) continue;
-  //   LOG("{} {}", thing->GetFullName(), better->Pawn->GeneratedEvents.size());
-  //
-  //   for (auto event : better->Pawn->GeneratedEvents) {
-  //     if (!event) continue;
-  //     LOG("  {}", event->GetFullName());
-  //   }
-  // }
+  for (auto thing : *gobjects) {
+    if (!thing || !thing->IsA(ADishonoredNPCController::StaticClass())) continue;
+    auto better = (ADishonoredNPCController*)thing;
+
+    if (!better->Pawn) continue;
+    LOG("{} {}", thing->GetFullName(), (uint8_t)better->Pawn->Role);
+
+    for (auto event : better->Pawn->GeneratedEvents) {
+      if (!event) continue;
+      LOG("  {}", event->GetFullName());
+    }
+  }
 
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
@@ -73,17 +73,22 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
 
+  actor->Role = ENetRole::ROLE_Authority;
+
   actor->m_SpawnerInfo = FDisSpawnerInfo{};
   actor->m_SpawnerInfo.m_Position = {};
-  actor->m_SpawnerInfo.m_Position.m_Loc = actor->Location;
+  actor->m_SpawnerInfo.m_Position.m_Loc = {0, 1, 0};
   actor->m_SpawnerInfo.m_Position.m_Rot = actor->Rotation;
 
   actor->Controller = controller;
   actor->m_NPCID = world_info->m_NextNPCID;
+
   world_info->m_NextNPCID++;
 
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+
+  LOG("Actor Role {}, Actor Physics {}, Delete me {}", (uint8_t)actor->Role, (uint8_t)actor->Physics, (uint8_t)actor->bDeleteMe);
 
   return nullptr;
 }

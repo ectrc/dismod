@@ -152,20 +152,20 @@ private: \
     inline static std::shared_ptr<HookName##_hook> instance_; \
 };
 
-#define DEFINE_C_HOOK( \
+#define DEFINE_RAW_HOOK( \
     HookName, \
-    Signature, \
+    Address, \
     RetType, \
     ... \
 ) \
-typedef RetType (__cdecl *HookName##_t)(__VA_ARGS__); \
+typedef RetType (__thiscall *HookName##_t)(__VA_ARGS__); \
 \
 class HookName##_hook { \
 public: \
     HookName##_hook() { \
         this->hook_ = base_hook<HookName##_t>{ \
             HOOK_STRINGIZE(HookName), \
-            hat::compile_signature<Signature>(), \
+            (std::byte*)((uintptr_t)GetModuleHandleW(0) + (uintptr_t)Address), \
             this->trampoline \
         }; \
 \
@@ -182,7 +182,7 @@ public: \
         return instance_; \
     } \
 \
-    static auto __cdecl trampoline(__VA_ARGS__) -> RetType; \
+    static auto __thiscall trampoline(__VA_ARGS__) -> RetType; \
 \
 public: \
     base_hook<HookName##_t> hook_; \
