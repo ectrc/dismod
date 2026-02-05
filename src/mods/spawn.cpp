@@ -51,12 +51,6 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   }
   tweaks_base->m_pFactionTweak = faction_tweak;
 
-  const auto spawner = engine::ConstructObject<ADishonoredSpawner>(world);
-  if (!spawner) {
-    LOG("Failed to spawn spawner!");
-    return std::nullopt;
-  }
-
   const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass()));
   if (!controller) {
     LOG("Failed to spawn controller!");
@@ -83,6 +77,13 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
 
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+
+
+  const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
+  action->m_pDestinationActor = get_state()->pawn;
+  action->m_bSetNewHomeActor = true;
+  action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Walk;
+  controller->OnAIGoToActor(action);
 
   return controller;
 }
