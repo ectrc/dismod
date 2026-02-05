@@ -34,6 +34,8 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     LOG("Failed to load tweaks base!");
     return std::nullopt;
   }
+  tweaks_base->m_BusyText = L"username123";
+  tweaks_base->m_pInteractableTweaks->m_bAllowedToHighlight = true;
 
   const auto ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, request.ai_tweaks_name.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
   if (ai_tweaks_base == nullptr) {
@@ -41,6 +43,13 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
   tweaks_base->m_pBrainTweak = ai_tweaks_base;
+
+  const auto faction_tweak = engine::LoadObject<UDisTweaks_Faction>(nullptr, request.faction_tweak.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
+  if (faction_tweak == nullptr) {
+    LOG("Failed to load faction_tweak!");
+    return std::nullopt;
+  }
+  tweaks_base->m_pFactionTweak = faction_tweak;
 
   const auto spawner = engine::ConstructObject<ADishonoredSpawner>(world);
   if (!spawner) {
@@ -74,8 +83,6 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
 
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
-
-  actor->m_pCurFactionTweak = get_state()->pawn->m_pCurFactionTweak;
 
   return controller;
 }

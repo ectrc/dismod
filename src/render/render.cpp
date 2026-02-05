@@ -103,13 +103,16 @@ namespace render{
     ImGui::LabelText("", "close or open using end key");
 
     ImGui::SeparatorText("spawn an npc");
+
     ImGui::InputText("npc base tweak", render_state.npc_base_tweak, 256);
     ImGui::InputText("npc ai tweak", render_state.npc_ai_tweak, 256);
+    ImGui::InputText("faction tweak", render_state.npc_faction_tweak, 256);
 
     if (ImGui::Button("spawn")) {
       get_state()->event_queue.push( {
         .npc_tweaks_name = widen(render_state.npc_base_tweak),
         .ai_tweaks_name = widen(render_state.npc_ai_tweak),
+        .faction_tweak = widen(render_state.npc_faction_tweak)
       });
     };
 

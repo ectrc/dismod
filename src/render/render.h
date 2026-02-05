@@ -8,10 +8,11 @@
 #include <sdk.hpp>
 
 struct render_state {
-    float dpi_scale = 1.0f;
-    std::atomic<bool> wants_exit = false;
-    char npc_base_tweak[256] = "Pwn_Thug_MSmall_4.Pwn_Thug_MSmall_4";
-    char npc_ai_tweak[256] = "AI_BrainTweaks_Guard.BrainTweaks_Guard";
+    float dpi_scale;
+    std::atomic<bool> wants_exit;
+    char npc_base_tweak[256];
+    char npc_ai_tweak[256];
+    char npc_faction_tweak[256];
 };
 
 namespace render {
@@ -29,7 +30,13 @@ namespace render {
     inline IDirect3DTexture9* texture = nullptr;
     inline std::once_flag init_once_flag = {};
 
-    inline render_state render_state = {};
+    inline render_state render_state = {
+        .dpi_scale = 1.0f,
+        .wants_exit = false,
+        .npc_base_tweak = "Twk_Pawn_Executioner.Twk_Pawn_Executioner",
+        .npc_ai_tweak = "AI_BrainTweaks_Civilian.BrainTweaks_Civilian",
+        .npc_faction_tweak = "DisFaction_Defaults.Faction_Weepers_Default"
+    };
 
     inline WNDPROC original_window_proc;
     extern LRESULT WINAPI window_proc(const HWND window, UINT message, WPARAM wide_param, LPARAM long_param);

@@ -26,6 +26,7 @@ inline bool ensure(Args*... args) {
 struct NPCSpawnRequest {
   std::wstring npc_tweaks_name;
   std::wstring ai_tweaks_name;
+  std::wstring faction_tweak;
 };
 
 struct state {
