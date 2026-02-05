@@ -15,8 +15,9 @@ namespace render{
   auto setup(LPDIRECT3DDEVICE9 device) -> void {
     std::call_once(init_once_flag, [device]() {
       ImGui::CreateContext();
+
       ImGuiIO& io = ImGui::GetIO();
-      io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+      io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
 
       D3DDEVICE_CREATION_PARAMETERS creation_parameters;
       device->GetCreationParameters(&creation_parameters);
@@ -28,6 +29,13 @@ namespace render{
 
       ImGui_ImplWin32_Init(output_window);
       ImGui_ImplDX9_Init(device);
+      ImGui_ImplWin32_EnableDpiAwareness();
+
+      float main_scale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+
+      ImGuiStyle& style = ImGui::GetStyle();
+      style.ScaleAllSizes(main_scale);
+      style.FontScaleDpi = main_scale;
     });
   }
 
@@ -71,7 +79,14 @@ namespace render{
   }
 
   auto draw_overlay(LPDIRECT3DDEVICE9 device) -> void {
-    if (!draw_enabled.load()) return;
+    ImGuiIO& io = ImGui::GetIO();
+
+
+    if (!draw_enabled.load()) {
+      io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+      return;
+    };
+    io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
 
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -100,7 +115,7 @@ namespace render{
 
     ImGui::SeparatorText("unload the mod");
 
-    if (ImGui::Button("spawn")) {
+    if (ImGui::Button("unload module")) {
       render_state.wants_exit.store(true);
     };
 

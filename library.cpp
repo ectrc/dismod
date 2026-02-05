@@ -42,6 +42,7 @@ auto __stdcall thread(void* module) -> void {
     controller_init_npc_hook::instance()->hook_.enable();
 
     end_scene_hook::instance()->hook_.enable();
+    process_input_hook::instance()->hook_.enable();
 
     mods::spawn_test_pawn();
   }
@@ -49,6 +50,7 @@ auto __stdcall thread(void* module) -> void {
   while (!render::render_state.wants_exit.load()) { Sleep(1000); }
   FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
 }
+
 
 void __stdcall unload(void* module) {
   Sleep(2000);
@@ -67,6 +69,7 @@ void __stdcall unload(void* module) {
   controller_init_npc_hook::instance()->hook_.disable();
 
   end_scene_hook::instance()->hook_.disable();
+  process_input_hook::instance()->hook_.disable();
   render::cleanup();
 
   LOG("Unloaded!");

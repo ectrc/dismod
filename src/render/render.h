@@ -8,6 +8,7 @@
 #include <sdk.hpp>
 
 struct render_state {
+    float dpi_scale = 1.0f;
     std::atomic<bool> wants_exit = false;
     char npc_base_tweak[256] = "Pwn_Thug_MSmall_4.Pwn_Thug_MSmall_4";
     char npc_ai_tweak[256] = "AI_BrainTweaks_Guard.BrainTweaks_Guard";

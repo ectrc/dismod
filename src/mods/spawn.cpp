@@ -75,7 +75,9 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
-  return nullptr;
+  actor->m_pCurFactionTweak = get_state()->pawn->m_pCurFactionTweak;
+
+  return controller;
 }
 
 auto mods::spawn_test_pawn() -> void {
