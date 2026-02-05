@@ -8,14 +8,24 @@
 #include "logger.h"
 #include "queue.h"
 
+#include <windows.h>
+
+inline std::wstring widen(const char* input)
+{
+  int len = MultiByteToWideChar(CP_UTF8, 0, input, -1, nullptr, 0);
+  std::wstring result(len - 1, L'\0');
+  MultiByteToWideChar(CP_UTF8, 0, input, -1, result.data(), len);
+  return result;
+}
+
 template<typename... Args>
 inline bool ensure(Args*... args) {
   return ((args != nullptr) && ...);
 }
 
 struct NPCSpawnRequest {
-  FString npc_tweaks_name;
-  FString ai_tweaks_name;
+  std::wstring npc_tweaks_name;
+  std::wstring ai_tweaks_name;
 };
 
 struct state {

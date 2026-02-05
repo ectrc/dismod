@@ -12,7 +12,7 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
   for (const auto& request : requests) {
     const auto result = ::mods::handle_single_npc_request(world, request);
     if (!result.has_value()) {
-      LOG("NPC Request failed. npc_tweak={} ai_tweak={}", request.npc_tweaks_name.ToString(), request.ai_tweaks_name.ToString());
+      LOG("NPC Request failed. npc_tweak={} ai_tweak={}", FString(request.npc_tweaks_name.c_str()).ToString().c_str(), FString(request.ai_tweaks_name.c_str()).ToString().c_str());
       continue;
     }
 
@@ -23,32 +23,19 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
 }
 
 auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
-  for (auto thing : *gobjects) {
-    if (!thing || !thing->IsA(ADishonoredNPCController::StaticClass())) continue;
-    auto better = (ADishonoredNPCController*)thing;
-
-    if (!better->Pawn) continue;
-    LOG("{} {}", thing->GetFullName(), (uint8_t)better->Pawn->Role);
-
-    for (auto event : better->Pawn->GeneratedEvents) {
-      if (!event) continue;
-      LOG("  {}", event->GetFullName());
-    }
-  }
-
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
     LOG("Failed to get world_info!");
     return std::nullopt;
   }
 
-  const auto tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, request.npc_tweaks_name.ToWideString().c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
+  const auto tweaks_base = engine::LoadObject<UDisTweaks_NPCPawn>(nullptr, request.npc_tweaks_name.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
   if (tweaks_base == nullptr) {
     LOG("Failed to load tweaks base!");
     return std::nullopt;
   }
 
-  const auto ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, request.ai_tweaks_name.ToWideString().c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
+  const auto ai_tweaks_base = engine::LoadObject<UDisTweaks_AIBrain>(nullptr, request.ai_tweaks_name.c_str(), nullptr, engine::load_flags::memory_reader, nullptr);
   if (ai_tweaks_base == nullptr) {
     LOG("Failed to load ai_tweaks_base!");
     return std::nullopt;
@@ -88,16 +75,14 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, tweaks_base->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
-  LOG("Actor Role {}, Actor Physics {}, Delete me {}", (uint8_t)actor->Role, (uint8_t)actor->Physics, (uint8_t)actor->bDeleteMe);
-
   return nullptr;
 }
 
 auto mods::spawn_test_pawn() -> void {
-  while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
-
-  get_state()->event_queue.push({
-    .npc_tweaks_name = L"Pwn_CityGuard_MSmall_1_Helm1.Pwn_CityGuard_MSmall_1_Helm1",
-    .ai_tweaks_name = L"AI_BrainTweaks_Guard.BrainTweaks_Guard",
-  });
+  // while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
+  //
+  // get_state()->event_queue.push({
+  //   .npc_tweaks_name = L"Pwn_Thug_MSmall_4.Pwn_Thug_MSmall_4",
+  //   .ai_tweaks_name = L"AI_BrainTweaks_Guard.BrainTweaks_Guard",
+  // });
 }

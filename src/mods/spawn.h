@@ -8,7 +8,6 @@
 #include "hook.h"
 #include "sdk.hpp"
 
-
 DEFINE_HOOK(
     init_brain,
     "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 F6 46 ? ? 0F 85 ? ? ? ? 8B 45",
@@ -34,30 +33,6 @@ DEFINE_HOOK(
 inline auto __thiscall tick_brain_hook::trampoline(UDishonoredAIBrain* brain, float delta) -> void {
     if (brain == nullptr) return;
     return tick_brain_hook::instance()->hook_.original()(brain, delta);
-}
-
-DEFINE_HOOK(
-    register_avoidable,
-    "56 8B F1 E8 ? ? ? ? 85 C0 75 ? 8B 86",
-    void,
-    ADishonoredNPCPawn* npc
-);
-
-inline auto __thiscall register_avoidable_hook::trampoline(ADishonoredNPCPawn* npc) -> void {
-    if (npc == nullptr) return;
-    return register_avoidable_hook::instance()->hook_.original()(npc);
-}
-
-DEFINE_HOOK(
-    start_all_components,
-    "56 57 8B F9 33 F6 85 F6 7C ?? 3B 77 ?? 7D ?? 8B 47",
-    void,
-    UArkComponentContainer* container
-);
-
-inline auto __thiscall start_all_components_hook::trampoline(UArkComponentContainer* container) -> void {
-    if (container == nullptr) return;
-    return start_all_components_hook::instance()->hook_.original()(container);
 }
 
 DEFINE_HOOK(
