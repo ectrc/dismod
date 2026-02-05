@@ -42,10 +42,7 @@ auto __stdcall thread(void* module) -> void {
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
     controller_init_npc_hook::instance()->hook_.enable();
-
-    save_to_dictionary_hook::instance()->hook_.enable();
     fname_tostring_hook::instance()->hook_.enable();
-    desotry_string_property_hook::instance()->hook_.enable();
 
     end_scene_hook::instance()->hook_.enable();
     process_input_hook::instance()->hook_.enable();
@@ -74,10 +71,7 @@ void __stdcall unload(void* module) {
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
   controller_init_npc_hook::instance()->hook_.disable();
-
-  save_to_dictionary_hook::instance()->hook_.disable();
   fname_tostring_hook::instance()->hook_.disable();
-  desotry_string_property_hook::instance()->hook_.disable();
 
   end_scene_hook::instance()->hook_.disable();
   process_input_hook::instance()->hook_.disable();

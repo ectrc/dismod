@@ -29,7 +29,9 @@ process_event_hook::process_event_hook() {
 }
 
 auto __thiscall process_event_hook::trampoline(UObject* object, UFunction* function, void* params, void* result) -> void {
-#if LOG_PE
+  if (object == nullptr || function == nullptr) return;
+
+  #if LOG_PE
   LOG("{}->ProcessEvent({})", object->GetName(), function->GetFullName());
 #endif
 
