@@ -182,26 +182,26 @@ namespace render{
   auto draw_overlay(LPDIRECT3DDEVICE9 device) -> void {
     ImGuiIO& io = ImGui::GetIO();
 
-
-    if (!draw_enabled.load()) {
-      io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableGamepad;
-      return;
-    };
-    io.ConfigFlags = ImGuiConfigFlags_NavEnableGamepad;
-
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    // ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-    // ImGui::GetBackgroundDrawList()->AddRectFilled(
-    //   ImVec2(center.x - 50, center.y - 50),
-    //   ImVec2(center.x + 50, center.y + 50),
-    //   IM_COL32(255, 0, 0, 255)
-    // );
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    const auto size = ImGui::CalcTextSize("saving is disabled to prevent unwanted behaviour when reloading without the mod enabled");
+    ImGui::GetBackgroundDrawList()->AddText(ImVec2(center.x - size.x/2, size.y ), ImColor(255, 255, 255, 255), "saving is disabled to prevent unwanted behaviour when reloading without the mod enabled");
+
+    if (!draw_enabled.load()) {
+      io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableGamepad;
+
+      ImGui::Render();
+      ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+      return;
+    };
+    io.ConfigFlags = ImGuiConfigFlags_NavEnableGamepad;
+
     ImGui::Begin("dismod");
 
-    ImGui::LabelText("", "close or open using end key");
+    ImGui::Text( "close or open using end key");
 
     ImGui::SeparatorText("npc presets");
 
@@ -286,7 +286,7 @@ namespace render{
 
     if (ImGui::Button("unload module")) {
       render_state.wants_exit.store(true);
-    };
+    }
 
     ImGui::End();
 
