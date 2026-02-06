@@ -45,9 +45,7 @@ namespace engine {
 
   auto LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load_flags) -> UPackage*;
 
-  typedef void (__cdecl *FAsyncCompletionCallback)(UObject* LinkerRoot, void* CallbackUserData);
-
-  auto LoadPackageAsync(const FString& package_name, FAsyncCompletionCallback completion_callback, void* callback_user_data = nullptr, const FGuid* required_guid = nullptr, FName package_type = FName(0)) -> void;
+  auto LoadPackageAsync(const FString& package_name, void (__cdecl *CompletionCallback)(UObject *, void *), void* callback_user_data = nullptr, const FGuid* required_guid = nullptr) -> void;
 
   auto StaticLoadObject(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation = true) -> UObject*;
 

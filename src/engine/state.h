@@ -61,6 +61,7 @@ public:
   std::wstring npc_tweaks_name;
   std::wstring ai_tweaks_name;
   std::wstring faction_tweak;
+  bool loaded_package;
 
   static std::unordered_map<NPCSpawnRequest_PresetType, NPCSpawnRequest> npc_presets;
 };

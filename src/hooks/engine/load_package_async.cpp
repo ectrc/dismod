@@ -23,8 +23,8 @@ load_package_async_hook::load_package_async_hook() {
   }
 }
 
-auto __cdecl load_package_async_hook::trampoline(const FString& package_name, engine::FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type) -> void {
+auto __cdecl load_package_async_hook::trampoline(const FString& package_name, void (__cdecl *CompletionCallback)(UObject *, void *), void* callback_user_data, const FGuid* required_guid) -> void {
   LOG("LoadPackageAsync({})", package_name.ToString());
 
-  return load_package_async_hook::instance()->hook_.original()(package_name, completion_callback, callback_user_data, required_guid, package_type);
+  return load_package_async_hook::instance()->hook_.original()(package_name, CompletionCallback, callback_user_data, required_guid);
 }

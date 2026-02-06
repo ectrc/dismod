@@ -43,6 +43,7 @@ add_library(dismod SHARED
         src/hooks/engine/load_package.cpp
         src/hooks/engine/load_package_async.cpp
         src/hooks/engine/static_load_object.cpp
+        src/hooks/engine/static_find_object.cpp
         src/hooks/engine/static_construct_object.cpp
         src/hooks/engine/static_duplicate_object.cpp
         src/hooks/engine/spawn_actor_from_tweaks.cpp

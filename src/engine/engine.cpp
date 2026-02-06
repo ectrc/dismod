@@ -20,10 +20,10 @@ auto engine::LoadPackage(UPackage* in, const wchar_t* file_name, load_flags load
   return load_package_hook::instance()->hook_.original()(in, file_name, load_flags);
 }
 
-auto engine::LoadPackageAsync(const FString& package_name, FAsyncCompletionCallback completion_callback, void* callback_user_data, const FGuid* required_guid, FName package_type) -> void {
+auto engine::LoadPackageAsync(const FString& package_name, void (__cdecl *CompletionCallback)(UObject *, void *), void* callback_user_data, const FGuid* required_guid) -> void {
   LOG("LoadPackageAsync({})", package_name.ToString());
 
-  return load_package_async_hook::instance()->hook_.original()(package_name, completion_callback, callback_user_data, required_guid, package_type);
+  return load_package_async_hook::instance()->hook_.original()(package_name, CompletionCallback, callback_user_data, required_guid);
 }
 
 auto engine::StaticLoadObject(UClass* object_class, UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, load_flags load_flags, UPackageMap* sandbox, bool allow_object_reconciliation) -> UObject* {

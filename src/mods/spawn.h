@@ -161,8 +161,9 @@ inline auto __thiscall get_player_viewpoint_hook::trampoline(APlayerController *
 }
 
 namespace mods {
-    auto handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest> &requests) -> std::vector<ADishonoredNPCController*>;
-    auto handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*>;
+    auto handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest> &requests) -> void;
+	auto handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> void;
+    auto handle_single_npc_request_stepped(NPCSpawnRequest* request) -> void;
 
     auto spawn_test_pawn() -> void;
 }

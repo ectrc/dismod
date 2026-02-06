@@ -5,28 +5,19 @@
 #include "engine/engine.h"
 #include "sdk.hpp"
 #include "logger.h"
+#include "hooks/engine/static_find_object.h"
 
-auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requests) -> std::vector<ADishonoredNPCController*> {
-  std::vector<ADishonoredNPCController*> results = {};
-
-  for (const auto& request : requests) {
-    const auto result = ::mods::handle_single_npc_request(world, request);
-    if (!result.has_value()) {
-      LOG("NPC Request failed. npc_tweak={} ai_tweak={}", FString(request.npc_tweaks_name.c_str()).ToString().c_str(), FString(request.ai_tweaks_name.c_str()).ToString().c_str());
-      continue;
-    }
-
-    results.push_back(result.value());
+auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requests) -> void {
+  for (NPCSpawnRequest &request : requests) {
+    handle_single_npc_request(world, request);
   }
-
-  return results;
 }
 
-auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
+auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> void {
   const auto player_controller = reinterpret_cast<ADishonoredPlayerController*>(get_state()->engine->GamePlayers[0]->Actor);
   if (player_controller == nullptr) {
     LOG("player controller is null");
-    return std::nullopt;
+    return;
   }
 
   FVector original_location = player_controller->Location;
@@ -41,8 +32,21 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   end.Z = original_location.Z + look_vector.Z * 10000;
 
   FCheckResult check = {};
+  uworld_line_check_hook::instance()->hook_.original()(world, &check, player_controller->Pawn, &end, &original_location, ETraceFlags::TRACE_World, player_controller->Pawn->GetCollisionExtent(), nullptr);
 
-  LOG("{}", uworld_line_check_hook::instance()->hook_.original()(world, &check, player_controller->Pawn, &end, &original_location, ETraceFlags::TRACE_World, player_controller->Pawn->GetCollisionExtent(), nullptr) ? "got a point" : "no point");
+  if (!request.loaded_package && !static_find_object_hook::instance()->hook_.original()(UPackage::StaticClass(), nullptr, request.package_name.c_str(), true)) {
+    auto* heap_request = new NPCSpawnRequest(request);
+
+    engine::LoadPackageAsync(request.package_name.c_str(), [](UObject* thing, void* request) -> void {
+      auto package = reinterpret_cast<UPackage*>(thing);
+      if (!(package->ObjectFlags.A & EObjectFlags::RF_RootSet)) package->ObjectFlags.A |= EObjectFlags::RF_RootSet;
+
+      const auto casted_request = static_cast<NPCSpawnRequest *>(request);
+      mods::handle_single_npc_request_stepped(casted_request);
+    }, heap_request, new FGuid());
+
+    return;
+  }
 
   auto load_and_duplicate = [&request]<typename T>(const std::wstring& pathname) -> std::optional<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
@@ -53,7 +57,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
       return std::nullopt;
     }
 
-    const auto duplicated = engine::DuplicateObject<T>(loaded, loaded, L"None");
+    T* duplicated = engine::DuplicateObject<T>(loaded, loaded, L"None");
     if (duplicated == nullptr) {
       LOG("Failed to duplicate from disk!");
       return std::nullopt;
@@ -62,47 +66,43 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return duplicated;
   };
 
-  const auto package = engine::LoadPackage(nullptr, request.package_name.c_str(), engine::load_flags::seek_free);
-
   const auto world_info = reinterpret_cast<ADishonoredGameInfo*>(world->m_pWorldInfo->Game);
   if (!world_info) {
     LOG("Failed to get world_info!");
-    return std::nullopt;
+    return;
   }
   LOG("{}", world_info->GetFullName());
 
   const auto npc_tweak = load_and_duplicate.operator()<UDisTweaks_NPCPawn>(request.npc_tweaks_name);
   if (!npc_tweak.has_value()) {
     LOG("Failed to load npc_tweaks!");
-    return std::nullopt;
+    return;
   }
 
   const auto ai_tweak = load_and_duplicate.operator()<UDisTweaks_AIBrain>(request.ai_tweaks_name);
   if (!ai_tweak.has_value()) {
     LOG("Failed to load ai_tweak!");
-    return std::nullopt;
+    return;
   }
   npc_tweak.value()->m_pBrainTweak = ai_tweak.value();
 
   const auto faction_tweak = load_and_duplicate.operator()<UDisTweaks_Faction>(request.faction_tweak);
   if (!faction_tweak.has_value()) {
     LOG("Failed to load faction_tweak!");
-    return std::nullopt;
+    return;
   }
   npc_tweak.value()->m_pFactionTweak = faction_tweak.value();
 
-  const auto spawn_location = FVector{ get_state()->pawn->Location.X, get_state()->pawn->Location.Y, get_state()->pawn->Location.Z + 200 };
-
-  const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass(), 0, &spawn_location));
+  const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass(), 0, &check.Location));
   if (!controller) {
     LOG("Failed to spawn controller!");
-    return std::nullopt;
+    return;
   }
 
   const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &check.Location, nullptr, nullptr, 0, 1, controller));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
-    return std::nullopt;
+    return;
   }
 
   actor->Role = ENetRole::ROLE_Authority;
@@ -110,22 +110,19 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   world_info->m_NextNPCID++;
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+}
 
-  const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
-  action->m_pDestinationActor = get_state()->pawn;
-  action->m_bSetNewHomeActor = true;
-  action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
-  controller->OnAIGoToActor(action);
+auto mods::handle_single_npc_request_stepped(NPCSpawnRequest* request) -> void {
+  request->loaded_package = true;
 
-  // const auto discover = engine::ConstructObject<UDisSeqAct_ShowLocationDiscovery>(world);
-  // discover->m_LocationName = L"Hello :D";
-  // reinterpret_cast<void(__thiscall*)(UDisSeqAct_ShowLocationDiscovery*)>(((void**)(discover->VfTableObject.Dummy))[0x5D])(discover);
+  const auto aa = std::string(request->ai_tweaks_name.begin(), request->ai_tweaks_name.end());
+  LOG("package {}", aa.c_str());
 
-  // const auto chop = engine::ConstructObject<UDisSeqAct_SeverLimb>(world);
-  // action->m_pDestinationActor = get_state()->pawn;
-  // action->m_bSetNewHomeActor = true;
-  // action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
-  // actor->OnSeverLimb(chop);
-
-  return controller;
+  get_state()->event_queue.push( {
+    .package_name = request->package_name,
+    .npc_tweaks_name = request->npc_tweaks_name,
+    .ai_tweaks_name = request->ai_tweaks_name,
+    .faction_tweak = request->faction_tweak,
+    .loaded_package = true,
+  });
 }
