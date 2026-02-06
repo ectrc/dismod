@@ -34,9 +34,19 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   FCheckResult check = {};
   uworld_line_check_hook::instance()->hook_.original()(world, &check, player_controller->Pawn, &end, &original_location, ETraceFlags::TRACE_World, player_controller->Pawn->GetCollisionExtent(), nullptr);
 
-  const auto existing_npc_tweak = (UDisTweaks_NPCPawn*)static_find_object_hook::instance()->hook_.original()(UDisTweaks_NPCPawn::StaticClass(), nullptr, request.npc_tweaks_name.c_str(), true);
-  const auto existing_ai_tweak = (UDisTweaks_AIBrain*)static_find_object_hook::instance()->hook_.original()(UDisTweaks_AIBrain::StaticClass(), nullptr, request.ai_tweaks_name.c_str(), true);
-  const auto existing_faction_tweak = (UDisTweaks_Faction*)static_find_object_hook::instance()->hook_.original()(UDisTweaks_Faction::StaticClass(), nullptr, request.faction_tweak.c_str(), true);
+  const auto check_valid = []<typename T>(const std::wstring& pathname) -> T* {
+    static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
+
+    auto existing = static_find_object_hook::instance()->hook_.original()(T::StaticClass(), nullptr, pathname.c_str(), true);
+    if (existing == nullptr) return nullptr;
+    if (!existing->Name.IsValid()) return nullptr;
+
+    return (T*)existing;
+  };
+
+  const auto existing_npc_tweak = check_valid.operator()<UDisTweaks_NPCPawn>(request.npc_tweaks_name);
+  const auto existing_ai_tweak = check_valid.operator()<UDisTweaks_AIBrain>(request.ai_tweaks_name);
+  const auto existing_faction_tweak = check_valid.operator()<UDisTweaks_Faction>(request.faction_tweak);
 
   if (!request.loaded_package && (!existing_npc_tweak || !existing_ai_tweak || !existing_faction_tweak)) {
     auto* heap_request = new NPCSpawnRequest(request);
@@ -67,7 +77,6 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
       LOG("Failed to duplicate from disk!");
       return std::nullopt;
     }
-    if (!(duplicated->ObjectFlags.A & EObjectFlags::RF_RootSet)) duplicated->ObjectFlags.A |= EObjectFlags::RF_RootSet; // keep in memory for future use
 
     return duplicated;
   };
