@@ -3,6 +3,7 @@
 
 #include <sdk.hpp>
 #include <atomic>
+#include <unordered_map>
 
 #include "engine.h"
 #include "logger.h"
@@ -23,10 +24,21 @@ inline bool ensure(Args*... args) {
   return ((args != nullptr) && ...);
 }
 
-struct NPCSpawnRequest {
+class NPCSpawnRequest {
+public:
+  enum NPCSpawnRequest_PresetType {
+    assasin,
+    daud,
+    wolf,
+    buddy
+};
+
+  std::wstring package_name;
   std::wstring npc_tweaks_name;
   std::wstring ai_tweaks_name;
   std::wstring faction_tweak;
+
+  static std::unordered_map<NPCSpawnRequest_PresetType, NPCSpawnRequest> npc_presets;
 };
 
 struct state {

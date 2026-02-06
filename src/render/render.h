@@ -10,6 +10,7 @@
 struct render_state {
     float dpi_scale;
     std::atomic<bool> wants_exit;
+    char package[256];
     char npc_base_tweak[256];
     char npc_ai_tweak[256];
     char npc_faction_tweak[256];
@@ -33,6 +34,7 @@ namespace render {
     inline render_state render_state = {
         .dpi_scale = 1.0f,
         .wants_exit = false,
+        .package = "L_Prison_Script",
         .npc_base_tweak = "Twk_Pawn_Executioner.Twk_Pawn_Executioner",
         .npc_ai_tweak = "AI_BrainTweaks_Civilian.BrainTweaks_Civilian",
         .npc_faction_tweak = "DisFaction_Defaults.Faction_Conspiracy_Default"

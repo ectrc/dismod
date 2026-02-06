@@ -13,6 +13,23 @@ add_subdirectory(external/libhat)
 add_subdirectory(external/minhook)
 add_subdirectory(external/sdk)
 
+file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.png")
+set(RESOURCE_SOURCES "")
+
+foreach(RES_FILE ${RESOURCE_FILES})
+  get_filename_component(RES_NAME ${RES_FILE} NAME)
+  set(OUT_CPP "${CMAKE_CURRENT_SOURCE_DIR}/resources/${RES_NAME}.hpp")
+  add_custom_command(
+          OUTPUT ${OUT_CPP}
+          COMMAND xxd -i ${RES_FILE} > ${OUT_CPP}
+          DEPENDS ${RES_FILE}
+          COMMENT "Converting ${RES_FILE} to C++ array"
+          VERBATIM
+  )
+  list(APPEND RESOURCE_SOURCES ${OUT_CPP})
+endforeach()
+
+
 add_library(dismod SHARED
   library.cpp
 
@@ -44,10 +61,13 @@ add_library(dismod SHARED
   external/imgui/imgui_tables.cpp
   external/imgui/backends/imgui_impl_dx9.cpp
   external/imgui/backends/imgui_impl_win32.cpp
+
+  ${RESOURCE_SOURCES}
 )
 target_include_directories(dismod PUBLIC include src 
   external/imgui
   external/imgui/backends
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 target_link_libraries(dismod PUBLIC 
   libhat 

@@ -102,14 +102,34 @@ namespace render{
 
     ImGui::LabelText("", "close or open using end key");
 
-    ImGui::SeparatorText("spawn an npc");
+    ImGui::SeparatorText("spawn a npc preset");
 
+    if (ImGui::Button("spawn daud")) {
+      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::daud));
+    }
+
+    if (ImGui::Button("spawn assasin")) {
+      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::assasin));
+    }
+
+    if (ImGui::Button("spawn wolf")) {
+      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::wolf));
+    }
+
+    if (ImGui::Button("spawn buddy")) {
+      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::buddy));
+    }
+
+    ImGui::SeparatorText("spawn a custom npc");
+
+    ImGui::InputText("package", render_state.package, 256);
     ImGui::InputText("npc base tweak", render_state.npc_base_tweak, 256);
     ImGui::InputText("npc ai tweak", render_state.npc_ai_tweak, 256);
     ImGui::InputText("faction tweak", render_state.npc_faction_tweak, 256);
 
     if (ImGui::Button("spawn")) {
       get_state()->event_queue.push( {
+        .package_name = widen(render_state.package),
         .npc_tweaks_name = widen(render_state.npc_base_tweak),
         .ai_tweaks_name = widen(render_state.npc_ai_tweak),
         .faction_tweak = widen(render_state.npc_faction_tweak)

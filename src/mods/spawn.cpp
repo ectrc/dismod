@@ -41,7 +41,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return duplicated;
   };
 
-  const auto package = engine::LoadPackage(nullptr, L"L_Prison_Script", engine::load_flags::seek_free);
+  const auto package = engine::LoadPackage(nullptr, request.package_name.c_str(), engine::load_flags::seek_free);
 
   const auto world_info = engine::FindObject<ADishonoredGameInfo>();
   if (!world_info) {
@@ -77,7 +77,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
 
-  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &spawn_location, nullptr, nullptr, 1, 1, controller));
+  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &spawn_location, nullptr, nullptr, 0, 1, controller));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
     return std::nullopt;
