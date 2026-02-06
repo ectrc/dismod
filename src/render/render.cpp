@@ -4,10 +4,39 @@
 #include <imgui.h>
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
+#include <d3dx9.h>
 
 #include "engine/engine.h"
 #include "engine/state.h"
 #include "mods/spawn.h"
+
+#include "aristo_fem_1.png.hpp"
+#include "aristo_fem_2.png.hpp"
+#include "aristo_masc_1.png.hpp"
+#include "aristo_masc_2.png.hpp"
+#include "assasin.png.hpp"
+#include "boyle.png.hpp"
+#include "buddy.png.hpp"
+#include "civil_1.png.hpp"
+#include "civil_2.png.hpp"
+#include "daud.png.hpp"
+#include "elite_1.png.hpp"
+#include "emily.png.hpp"
+#include "empress.png.hpp"
+#include "granny.png.hpp"
+#include "madam.png.hpp"
+#include "middle_fem_1.png.hpp"
+#include "middle_fem_2.png.hpp"
+#include "outsider.png.hpp"
+#include "overseer_1.png.hpp"
+#include "overseer_2.png.hpp"
+#include "regent.png.hpp"
+#include "samuel.png.hpp"
+#include "servant_1.png.hpp"
+#include "servant_2.png.hpp"
+#include "slackjaw.png.hpp"
+#include "thug_1.png.hpp"
+#include "thug_2.png.hpp"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wide_param, LPARAM long_param);
 
@@ -36,6 +65,25 @@ namespace render{
       ImGuiStyle& style = ImGui::GetStyle();
       style.ScaleAllSizes(main_scale);
       style.FontScaleDpi = main_scale;
+
+      // for (size_t current = 1 + (size_t)NPCSpawnRequest::NPCSpawnRequest_PresetType::none; current < (size_t)NPCSpawnRequest::NPCSpawnRequest_PresetType::max; current++) {
+      //   LPDIRECT3DTEXTURE9 texture = nullptr;
+      HRESULT hr = D3DXCreateTextureFromFileInMemory(device, resources_emily_png, resources_emily_png_len, &texture);
+      //   if (FAILED(hr)) {
+      //     LOG("cannot make png of enum {}");
+      //     continue;
+      //   }
+      //
+      //   render::textures[static_cast<NPCSpawnRequest::NPCSpawnRequest_PresetType>(current)] = texture;
+      // }
+
+      auto create_and_add_tex = [&device](LPCVOID resource, UINT size, NPC_T using_enum) -> void {
+        if (FAILED(D3DXCreateTextureFromFileInMemory(device, resource, size, &render::textures[using_enum]))) {
+          LOG("failed to create texture for npc type {}", static_cast<uint32_t>(using_enum));
+        };
+      };
+
+      create_and_add_tex(resources_emily_png, resources_emily_png_len, NPC_T::emily);
     });
   }
 
@@ -101,6 +149,8 @@ namespace render{
     ImGui::Begin("dismod");
 
     ImGui::LabelText("", "close or open using end key");
+
+    ImGui::Image((ImTextureID)render::textures[NPCSpawnRequest::NPCSpawnRequest_PresetType::wolf], ImVec2((float)256, (float)256));
 
     ImGui::SeparatorText("spawn a npc preset");
 

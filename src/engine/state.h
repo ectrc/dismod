@@ -27,11 +27,35 @@ inline bool ensure(Args*... args) {
 class NPCSpawnRequest {
 public:
   enum NPCSpawnRequest_PresetType {
+    aristo_fem_1,
+    aristo_fem_2,
+    aristo_masc_1,
+    aristo_masc_2,
     assasin,
+    boyle,
+    buddy,
+    civil_1,
+    civil_2,
     daud,
-    wolf,
-    buddy
-};
+    elite_1,
+    emily,
+    empress,
+    granny,
+    madam,
+    middle_fem_1,
+    middle_fem_2,
+    outsider,
+    overseer_1,
+    overseer_2,
+    regent,
+    samuel,
+    servant_1,
+    servant_2,
+    slackjaw,
+    thug_1,
+    thug_2,
+  };
+
 
   std::wstring package_name;
   std::wstring npc_tweaks_name;
@@ -40,6 +64,8 @@ public:
 
   static std::unordered_map<NPCSpawnRequest_PresetType, NPCSpawnRequest> npc_presets;
 };
+
+typedef NPCSpawnRequest::NPCSpawnRequest_PresetType NPC_T;
 
 struct state {
   std::vector<uint64_t> spawned_npcs;

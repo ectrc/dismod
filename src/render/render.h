@@ -3,9 +3,12 @@
 
 #include <windows.h>
 #include <atomic>
+#include <map>
 #include <mutex>
 #include <d3d9.h>
 #include <sdk.hpp>
+
+#include "engine/state.h"
 
 struct render_state {
     float dpi_scale;
@@ -30,6 +33,8 @@ namespace render {
     inline HWND output_window = nullptr;
     inline IDirect3DTexture9* texture = nullptr;
     inline std::once_flag init_once_flag = {};
+
+    inline static std::unordered_map<NPCSpawnRequest::NPCSpawnRequest_PresetType, LPDIRECT3DTEXTURE9> textures = {};
 
     inline render_state render_state = {
         .dpi_scale = 1.0f,
