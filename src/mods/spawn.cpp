@@ -34,13 +34,14 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   FCheckResult check = {};
   uworld_line_check_hook::instance()->hook_.original()(world, &check, player_controller->Pawn, &end, &original_location, ETraceFlags::TRACE_World, player_controller->Pawn->GetCollisionExtent(), nullptr);
 
-  if (!request.loaded_package && !static_find_object_hook::instance()->hook_.original()(UPackage::StaticClass(), nullptr, request.package_name.c_str(), true)) {
+  const auto existing_npc_tweak = (UDisTweaks_NPCPawn*)static_find_object_hook::instance()->hook_.original()(UDisTweaks_NPCPawn::StaticClass(), nullptr, request.npc_tweaks_name.c_str(), true);
+  const auto existing_ai_tweak = (UDisTweaks_AIBrain*)static_find_object_hook::instance()->hook_.original()(UDisTweaks_AIBrain::StaticClass(), nullptr, request.ai_tweaks_name.c_str(), true);
+  const auto existing_faction_tweak = (UDisTweaks_Faction*)static_find_object_hook::instance()->hook_.original()(UDisTweaks_Faction::StaticClass(), nullptr, request.faction_tweak.c_str(), true);
+
+  if (!request.loaded_package && (!existing_npc_tweak || !existing_ai_tweak || !existing_faction_tweak)) {
     auto* heap_request = new NPCSpawnRequest(request);
 
     engine::LoadPackageAsync(request.package_name.c_str(), [](UObject* thing, void* request) -> void {
-      auto package = reinterpret_cast<UPackage*>(thing);
-      if (!(package->ObjectFlags.A & EObjectFlags::RF_RootSet)) package->ObjectFlags.A |= EObjectFlags::RF_RootSet;
-
       const auto casted_request = static_cast<NPCSpawnRequest *>(request);
       mods::handle_single_npc_request_stepped(casted_request);
     }, heap_request, new FGuid());
@@ -48,20 +49,25 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
     return;
   }
 
-  auto load_and_duplicate = [&request]<typename T>(const std::wstring& pathname) -> std::optional<T*> {
+  auto load_and_duplicate = [&request]<typename T>(T* existing, const std::wstring& pathname) -> std::optional<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
-    const auto loaded = engine::LoadObject<T>( nullptr, pathname.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
-    if (loaded == nullptr) {
-      LOG("Failed to load from disk!");
-      return std::nullopt;
+    if (!existing) {
+      const auto loaded = engine::LoadObject<T>( nullptr, pathname.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
+      if (loaded == nullptr) {
+        LOG("Failed to load from disk!");
+        return std::nullopt;
+      }
+
+      existing = loaded;
     }
 
-    T* duplicated = engine::DuplicateObject<T>(loaded, loaded, L"None");
+    T* duplicated = engine::DuplicateObject<T>(existing, existing, L"None");
     if (duplicated == nullptr) {
       LOG("Failed to duplicate from disk!");
       return std::nullopt;
     }
+    if (!(duplicated->ObjectFlags.A & EObjectFlags::RF_RootSet)) duplicated->ObjectFlags.A |= EObjectFlags::RF_RootSet; // keep in memory for future use
 
     return duplicated;
   };
@@ -73,20 +79,20 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   }
   LOG("{}", world_info->GetFullName());
 
-  const auto npc_tweak = load_and_duplicate.operator()<UDisTweaks_NPCPawn>(request.npc_tweaks_name);
+  const auto npc_tweak = load_and_duplicate.operator()<UDisTweaks_NPCPawn>(existing_npc_tweak, request.npc_tweaks_name);
   if (!npc_tweak.has_value()) {
     LOG("Failed to load npc_tweaks!");
     return;
   }
 
-  const auto ai_tweak = load_and_duplicate.operator()<UDisTweaks_AIBrain>(request.ai_tweaks_name);
+  const auto ai_tweak = load_and_duplicate.operator()<UDisTweaks_AIBrain>(existing_ai_tweak, request.ai_tweaks_name);
   if (!ai_tweak.has_value()) {
     LOG("Failed to load ai_tweak!");
     return;
   }
   npc_tweak.value()->m_pBrainTweak = ai_tweak.value();
 
-  const auto faction_tweak = load_and_duplicate.operator()<UDisTweaks_Faction>(request.faction_tweak);
+  const auto faction_tweak = load_and_duplicate.operator()<UDisTweaks_Faction>(existing_faction_tweak, request.faction_tweak);
   if (!faction_tweak.has_value()) {
     LOG("Failed to load faction_tweak!");
     return;
