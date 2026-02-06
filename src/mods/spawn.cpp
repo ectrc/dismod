@@ -23,7 +23,24 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
 }
 
 auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
-  auto load_and_duplicate = [&request]<typename T>(std::wstring pathname) -> std::optional<T*> {
+  const auto player_controller = get_state()->controller;
+
+  FVector original_location = player_controller->Location;
+  FRotator spawn_rotation = player_controller->Rotation;
+  get_player_viewpoint_hook::instance()->hook_.original()(player_controller, &original_location, &spawn_rotation);
+
+  FVector look_vector = {};
+  frotator_to_look_vector_hook::instance()->hook_.original()(&spawn_rotation, &look_vector);
+  FVector end = {};
+  end.X = original_location.X + look_vector.X * 10000;
+  end.Y = original_location.Y + look_vector.Y * 10000;
+  end.Z = original_location.Z + look_vector.Z * 10000;
+
+  FCheckResult check = {};
+
+  LOG("{}", uworld_line_check_hook::instance()->hook_.original()(world, &check, player_controller->Pawn, &end, &original_location, ETraceFlags::TRACE_World, player_controller->Pawn->GetCollisionExtent(), nullptr) ? "got a point" : "no point");
+
+  auto load_and_duplicate = [&request]<typename T>(const std::wstring& pathname) -> std::optional<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
     const auto loaded = engine::LoadObject<T>( nullptr, pathname.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
@@ -43,7 +60,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
 
   const auto package = engine::LoadPackage(nullptr, request.package_name.c_str(), engine::load_flags::seek_free);
 
-  const auto world_info = engine::FindObject<ADishonoredGameInfo>();
+  const auto world_info = engine::FindObject<ADishonoredGameInfo>(); // TODO: change to static find object
   if (!world_info) {
     LOG("Failed to get world_info!");
     return std::nullopt;
@@ -77,7 +94,7 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
     return std::nullopt;
   }
 
-  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &spawn_location, nullptr, nullptr, 0, 1, controller));
+  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &check.Location, nullptr, nullptr, 0, 1, controller));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
     return std::nullopt;
@@ -89,13 +106,11 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
-  const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
-  action->m_pDestinationActor = get_state()->pawn;
-  action->m_bSetNewHomeActor = true;
-  action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
-  controller->OnAIGoToActor(action);
-
-  get_state()->spawned_npcs.push_back(actor->m_NPCID);
+  // const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
+  // action->m_pDestinationActor = get_state()->pawn;
+  // action->m_bSetNewHomeActor = true;
+  // action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
+  // controller->OnAIGoToActor(action);
 
   // const auto discover = engine::ConstructObject<UDisSeqAct_ShowLocationDiscovery>(world);
   // discover->m_LocationName = L"Hello :D";
@@ -108,13 +123,4 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   // actor->OnSeverLimb(chop);
 
   return controller;
-}
-
-auto mods::spawn_test_pawn() -> void {
-  // while (GetAsyncKeyState(VK_INSERT) == 0) { Sleep(100); }
-  //
-  // get_state()->event_queue.push({
-  //   .npc_tweaks_name = L"Pwn_Thug_MSmall_4.Pwn_Thug_MSmall_4",
-  //   .ai_tweaks_name = L"AI_BrainTweaks_Guard.BrainTweaks_Guard",
-  // });
 }

@@ -46,14 +46,15 @@ auto __stdcall thread(void* module) -> void {
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
     controller_init_npc_hook::instance()->hook_.enable();
+    uworld_line_check_hook::instance()->hook_.enable();
+    frotator_to_look_vector_hook::instance()->hook_.enable();
+    get_player_viewpoint_hook::instance()->hook_.enable();
 
     fname_tostring_hook::instance()->hook_.enable();
     save_load_cmd_hook::instance()->hook_.enable();
 
     end_scene_hook::instance()->hook_.enable();
     process_input_hook::instance()->hook_.enable();
-
-    mods::spawn_test_pawn();
   }
 
   while (!render::render_state.wants_exit.load()) { Sleep(1000); }
@@ -77,6 +78,9 @@ void __stdcall unload(void* module) {
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
   controller_init_npc_hook::instance()->hook_.disable();
+  uworld_line_check_hook::instance()->hook_.disable();
+  frotator_to_look_vector_hook::instance()->hook_.disable();
+  get_player_viewpoint_hook::instance()->hook_.disable();
 
   fname_tostring_hook::instance()->hook_.disable();
   save_load_cmd_hook::instance()->hook_.disable();

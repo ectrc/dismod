@@ -66,24 +66,77 @@ namespace render{
       style.ScaleAllSizes(main_scale);
       style.FontScaleDpi = main_scale;
 
-      // for (size_t current = 1 + (size_t)NPCSpawnRequest::NPCSpawnRequest_PresetType::none; current < (size_t)NPCSpawnRequest::NPCSpawnRequest_PresetType::max; current++) {
-      //   LPDIRECT3DTEXTURE9 texture = nullptr;
-      HRESULT hr = D3DXCreateTextureFromFileInMemory(device, resources_emily_png, resources_emily_png_len, &texture);
-      //   if (FAILED(hr)) {
-      //     LOG("cannot make png of enum {}");
-      //     continue;
-      //   }
-      //
-      //   render::textures[static_cast<NPCSpawnRequest::NPCSpawnRequest_PresetType>(current)] = texture;
-      // }
+      style.Colors[ImGuiCol_Text]                  = ImVec4(0.86f, 0.93f, 0.89f, 0.78f);
+      style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.86f, 0.93f, 0.89f, 0.28f);
+      style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
+      style.Colors[ImGuiCol_Border]                = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
+      style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+      style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+      style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+      style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+      style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.20f, 0.22f, 0.27f, 0.75f);
+      style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.20f, 0.22f, 0.27f, 0.47f);
+      style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+      style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.09f, 0.15f, 0.16f, 1.00f);
+      style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+      style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.71f, 0.22f, 0.27f, 1.00f);
+      style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
+      style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_Button]                = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
+      style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.92f, 0.18f, 0.29f, 0.86f);
+      style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_Header]                = ImVec4(0.92f, 0.18f, 0.29f, 0.76f);
+      style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.92f, 0.18f, 0.29f, 0.86f);
+      style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_Separator]             = ImVec4(0.14f, 0.16f, 0.19f, 1.00f);
+      style.Colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+      style.Colors[ImGuiCol_SeparatorActive]       = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
+      style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+      style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_PlotLines]             = ImVec4(0.86f, 0.93f, 0.89f, 0.63f);
+      style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(0.86f, 0.93f, 0.89f, 0.63f);
+      style.Colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+      style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.92f, 0.18f, 0.29f, 0.43f);
+      style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.20f, 0.22f, 0.27f, 0.9f);
 
       auto create_and_add_tex = [&device](LPCVOID resource, UINT size, NPC_T using_enum) -> void {
-        if (FAILED(D3DXCreateTextureFromFileInMemory(device, resource, size, &render::textures[using_enum]))) {
+        if (FAILED(D3DXCreateTextureFromFileInMemory(device, resource, size, &textures[using_enum]))) {
           LOG("failed to create texture for npc type {}", static_cast<uint32_t>(using_enum));
         };
       };
 
+      create_and_add_tex(resources_aristo_fem_1_png, resources_aristo_fem_1_png_len, NPC_T::aristo_fem_1);
+      create_and_add_tex(resources_aristo_fem_2_png, resources_aristo_fem_2_png_len, NPC_T::aristo_fem_2);
+      create_and_add_tex(resources_aristo_masc_1_png, resources_aristo_masc_1_png_len, NPC_T::aristo_masc_1);
+      create_and_add_tex(resources_aristo_masc_2_png, resources_aristo_masc_2_png_len, NPC_T::aristo_masc_2);
+      create_and_add_tex(resources_assasin_png, resources_assasin_png_len, NPC_T::assasin);
+      create_and_add_tex(resources_boyle_png, resources_boyle_png_len, NPC_T::boyle);
+      create_and_add_tex(resources_buddy_png, resources_buddy_png_len, NPC_T::buddy);
+      create_and_add_tex(resources_civil_1_png, resources_civil_1_png_len, NPC_T::civil_1);
+      create_and_add_tex(resources_civil_2_png, resources_civil_2_png_len, NPC_T::civil_2);
+      create_and_add_tex(resources_daud_png, resources_daud_png_len, NPC_T::daud);
+      create_and_add_tex(resources_elite_1_png, resources_elite_1_png_len, NPC_T::elite_1);
       create_and_add_tex(resources_emily_png, resources_emily_png_len, NPC_T::emily);
+      create_and_add_tex(resources_empress_png, resources_empress_png_len, NPC_T::empress);
+      create_and_add_tex(resources_granny_png, resources_granny_png_len, NPC_T::granny);
+      create_and_add_tex(resources_madam_png, resources_madam_png_len, NPC_T::madam);
+      create_and_add_tex(resources_middle_fem_1_png, resources_middle_fem_1_png_len, NPC_T::middle_fem_1);
+      create_and_add_tex(resources_middle_fem_2_png, resources_middle_fem_2_png_len, NPC_T::middle_fem_2);
+      create_and_add_tex(resources_outsider_png, resources_outsider_png_len, NPC_T::outsider);
+      create_and_add_tex(resources_overseer_1_png, resources_overseer_1_png_len, NPC_T::overseer_1);
+      create_and_add_tex(resources_overseer_2_png, resources_overseer_2_png_len, NPC_T::overseer_2);
+      create_and_add_tex(resources_regent_png, resources_regent_png_len, NPC_T::regent);
+      create_and_add_tex(resources_samuel_png, resources_samuel_png_len, NPC_T::samuel);
+      create_and_add_tex(resources_servant_1_png, resources_servant_1_png_len, NPC_T::servant_1);
+      create_and_add_tex(resources_servant_2_png, resources_servant_2_png_len, NPC_T::servant_2);
+      create_and_add_tex(resources_slackjaw_png, resources_slackjaw_png_len, NPC_T::slackjaw);
+      create_and_add_tex(resources_thug_1_png, resources_thug_1_png_len, NPC_T::thug_1);
+      create_and_add_tex(resources_thug_2_png, resources_thug_2_png_len, NPC_T::thug_2);
     });
   }
 
@@ -150,25 +203,68 @@ namespace render{
 
     ImGui::LabelText("", "close or open using end key");
 
-    ImGui::Image((ImTextureID)render::textures[NPCSpawnRequest::NPCSpawnRequest_PresetType::wolf], ImVec2((float)256, (float)256));
+    ImGui::SeparatorText("npc presets");
 
-    ImGui::SeparatorText("spawn a npc preset");
 
-    if (ImGui::Button("spawn daud")) {
-      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::daud));
-    }
+    const auto spawn_npc = [&](NPC_T using_enum) -> void {
+      float window_width = ImGui::GetContentRegionAvail().x;
 
-    if (ImGui::Button("spawn assasin")) {
-      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::assasin));
-    }
+      if ((float)(ImGui::GetCursorPosX() + 4) > (float)window_width) ImGui::NewLine();
 
-    if (ImGui::Button("spawn wolf")) {
-      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::wolf));
-    }
+      if (ImGui::ImageButton(
+          std::format("{}##{}", static_cast<int>(using_enum), reinterpret_cast<uintptr_t>(textures[using_enum])).c_str(),
+          textures[using_enum],
+          ImVec2(85.f, 85.f)
+      )) {
+        get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(using_enum));
+      }
 
-    if (ImGui::Button("spawn buddy")) {
-      get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::buddy));
-    }
+      ImGui::SameLine();
+    };
+
+    // ImGui::BeginGroup();
+    spawn_npc(NPC_T::aristo_fem_1);
+    spawn_npc(NPC_T::aristo_fem_2);
+    spawn_npc(NPC_T::aristo_masc_1);
+    spawn_npc(NPC_T::aristo_masc_2);
+    spawn_npc(NPC_T::assasin);
+    spawn_npc(NPC_T::boyle);
+    spawn_npc(NPC_T::buddy);
+    spawn_npc(NPC_T::civil_1);
+    spawn_npc(NPC_T::civil_2);
+    spawn_npc(NPC_T::daud);
+    spawn_npc(NPC_T::elite_1);
+    spawn_npc(NPC_T::emily);
+    spawn_npc(NPC_T::empress);
+    spawn_npc(NPC_T::granny);
+    spawn_npc(NPC_T::madam);
+    spawn_npc(NPC_T::middle_fem_1);
+    spawn_npc(NPC_T::middle_fem_2);
+    spawn_npc(NPC_T::outsider);
+    spawn_npc(NPC_T::overseer_1);
+    spawn_npc(NPC_T::overseer_2);
+    spawn_npc(NPC_T::regent);
+    spawn_npc(NPC_T::samuel);
+    spawn_npc(NPC_T::servant_1);
+    spawn_npc(NPC_T::servant_2);
+    spawn_npc(NPC_T::slackjaw);
+    spawn_npc(NPC_T::thug_1);
+    spawn_npc(NPC_T::thug_2);
+
+    ImGui::NewLine();
+    // ImGui::EndGroup();
+
+    // if (ImGui::Button("spawn assasin")) {
+    //   get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::assasin));
+    // }
+    //
+    // if (ImGui::Button("spawn wolf")) {
+    //   get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::wolf));
+    // }
+    //
+    // if (ImGui::Button("spawn buddy")) {
+    //   get_state()->event_queue.push(NPCSpawnRequest::npc_presets.at(NPCSpawnRequest::NPCSpawnRequest_PresetType::buddy));
+    // }
 
     ImGui::SeparatorText("spawn a custom npc");
 
