@@ -23,7 +23,11 @@ auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requ
 }
 
 auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& request) -> std::optional<ADishonoredNPCController*> {
-  const auto player_controller = get_state()->controller;
+  const auto player_controller = reinterpret_cast<ADishonoredPlayerController*>(get_state()->engine->GamePlayers[0]->Actor);
+  if (player_controller == nullptr) {
+    LOG("player controller is null");
+    return std::nullopt;
+  }
 
   FVector original_location = player_controller->Location;
   FRotator spawn_rotation = player_controller->Rotation;
@@ -60,11 +64,12 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
 
   const auto package = engine::LoadPackage(nullptr, request.package_name.c_str(), engine::load_flags::seek_free);
 
-  const auto world_info = engine::FindObject<ADishonoredGameInfo>(); // TODO: change to static find object
+  const auto world_info = reinterpret_cast<ADishonoredGameInfo*>(world->m_pWorldInfo->Game);
   if (!world_info) {
     LOG("Failed to get world_info!");
     return std::nullopt;
   }
+  LOG("{}", world_info->GetFullName());
 
   const auto npc_tweak = load_and_duplicate.operator()<UDisTweaks_NPCPawn>(request.npc_tweaks_name);
   if (!npc_tweak.has_value()) {
@@ -106,11 +111,11 @@ auto mods::handle_single_npc_request(UWorld* world, const NPCSpawnRequest& reque
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
 
-  // const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
-  // action->m_pDestinationActor = get_state()->pawn;
-  // action->m_bSetNewHomeActor = true;
-  // action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
-  // controller->OnAIGoToActor(action);
+  const auto action = engine::ConstructObject<UDisSeqAct_AIGoToActor>(world);
+  action->m_pDestinationActor = get_state()->pawn;
+  action->m_bSetNewHomeActor = true;
+  action->m_DesiredMovementSpeed = EAIGoToActorMovement::AIGoToActorMovement_Run;
+  controller->OnAIGoToActor(action);
 
   // const auto discover = engine::ConstructObject<UDisSeqAct_ShowLocationDiscovery>(world);
   // discover->m_LocationName = L"Hello :D";

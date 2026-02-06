@@ -11264,7 +11264,10 @@ public:
 class UWorld : public UObject
 {
 public:
-	uint8_t                                            UnknownData00[0x294];                          // 0x0038 (0x0294) MISSED OFFSET
+	uint8_t                                            UnknownData00[0x288];                          // 0x0038 (0x0294) MISSED OFFSET
+	class AWorldInfo *m_pWorldInfo;
+	class AWorldInfo *m_pWorldInfoCheckStreamingPersistent;
+	void *m_pComponentManager;
 
 public:
 	static UClass* StaticClass()

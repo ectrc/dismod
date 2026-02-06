@@ -109,16 +109,6 @@ auto engine::spawn_actor(
   static FVector default_location(71.73864, 245.26736  ,1091.2305);
   static FRotator default_rotation(0, 0, 0);
 
-  static const auto world = FindObject<UWorld>();
-  if (!world) {
-    LOG("WorldInfo not found, cannot spawn actor.");
-    return nullptr;
-  }
-
-  if (base == nullptr) {
-    base = world;
-  }
-
   if (location == nullptr) {
     location = &default_location;
   }

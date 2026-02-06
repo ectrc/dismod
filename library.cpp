@@ -25,6 +25,7 @@ auto __stdcall thread(void* module) -> void {
   gnames = reinterpret_cast<TArray<FNameEntry*>*>(base + 0x1035674);
 
   const auto state = get_state();
+  state->engine = *reinterpret_cast<UDishonoredEngine **>(base + 0x104721C);
   state->pawn = *reinterpret_cast<ADishonoredPlayerPawn**>(base + 0x105F628);
   state->controller = reinterpret_cast<ADishonoredPlayerController*>(state->pawn->Controller);
   state->use_seek_free_loading = reinterpret_cast<bool*>(base + 0x101B24C);

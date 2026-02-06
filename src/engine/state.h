@@ -57,7 +57,6 @@ public:
     servant_2,
   };
 
-
   std::wstring package_name;
   std::wstring npc_tweaks_name;
   std::wstring ai_tweaks_name;
@@ -74,6 +73,8 @@ struct state {
   ThreadSafeQueue<NPCSpawnRequest> event_queue;
 
   bool* use_seek_free_loading;
+
+  UDishonoredEngine* engine;
   ADishonoredPlayerPawn* pawn;
   ADishonoredPlayerController* controller;
   ADishonoredPlayerCamera* camera;

@@ -118,7 +118,7 @@ std::unordered_map<NPCSpawnRequest::NPCSpawnRequest_PresetType, NPCSpawnRequest>
     L"DisFaction_Defaults.Faction_Thug_Default"
   }},
   {samuel, NPCSpawnRequest{
-    L"L_Pub_FromBridge_Script",
+    L"L_Streets1_Script",
     L"Twk_Pawn_Boatman.Twk_Pawn_Boatman",
     L"AI_BrainTweaks_Civilian.BrainTweaks_Civilian_NoPanic",
     L"DisFaction_Defaults.Faction_Conspiracy_Default"
