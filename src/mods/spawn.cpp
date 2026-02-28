@@ -125,6 +125,19 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   world_info->m_NextNPCID++;
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+
+  const auto Action = engine::ConstructObject<UDisSeqAct_DialogScriptedChoice>(world, 0);
+  Action->m_bUseTitle = 1;
+  Action->m_Title = *(new FString(L"HELLOOOO"));
+  Action->m_Choices.push_back({
+    .m_ChoiceText = *(new FString(L"HELLOOOO")),
+    .m_bDisablePlayerInputUntilMapChange = 0
+  });
+  Action->m_Choices.push_back({
+    .m_ChoiceText = *(new FString(L"asd")),
+    .m_bDisablePlayerInputUntilMapChange = 0
+  });
+  Action->eventActivated();
 }
 
 auto mods::handle_single_npc_request_stepped(NPCSpawnRequest* request) -> void {

@@ -3,3 +3,6 @@ c_cpp_properties.json
 settings.json
 
 /resources/*.hpp
+.cache
+.vscode
+.idea
