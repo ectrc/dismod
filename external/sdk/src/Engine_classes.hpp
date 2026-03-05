@@ -9458,7 +9458,10 @@ public:
 class ULevelBase : public UObject
 {
 public:
-	uint8_t                                            UnknownData00[0x54];                            // 0x0038 (0x0054) MISSED OFFSET
+	// uint8_t                                            UnknownData00[0x54];                            // 0x0038 (0x0054) MISSED OFFSET
+
+	TTransArray<AActor*> Actors;
+	FURL Url;
 
 public:
 	static UClass* StaticClass()
@@ -11264,7 +11267,11 @@ public:
 class UWorld : public UObject
 {
 public:
-	uint8_t                                            UnknownData00[0x288];                          // 0x0038 (0x0294) MISSED OFFSET
+	void* Scene;
+	TArray<class ULevel*> Levels;
+	class ULevel* PersistentLevel;
+	uint8_t UnknownData00[0x288 - 0x14];
+	// uint8_t                                            UnknownData00[0x288];                          // 0x0038 (0x0294) MISSED OFFSET
 	class AWorldInfo *m_pWorldInfo;
 	class AWorldInfo *m_pWorldInfoCheckStreamingPersistent;
 	void *m_pComponentManager;

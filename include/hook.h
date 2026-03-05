@@ -152,7 +152,6 @@ private: \
     inline static std::shared_ptr<HookName##_hook> instance_; \
 };
 
-
 #define DEFINE_HOOK_C( \
     HookName, \
     Signature, \

@@ -33,7 +33,26 @@ DEFINE_HOOK(
 
 inline auto __thiscall tick_brain_hook::trampoline(UDishonoredAIBrain* brain, float delta) -> void {
     if (brain == nullptr) return;
+	if (brain->m_pBrainTweaks == nullptr) return;
+	if (brain->m_pBrainTweaks->m_VersionNum == 696969) return;
     return tick_brain_hook::instance()->hook_.original()(brain, delta);
+}
+
+DEFINE_HOOK(
+	tick_npc_walking,
+	"55 8B EC 53 56 57 8B F9 8B B7",
+	void,
+	ADishonoredNPCPawn* pawn, float _fDeltaTime, int _iIterations
+);
+
+inline auto __thiscall tick_npc_walking_hook::trampoline(ADishonoredNPCPawn* pawn, float _fDeltaTime, int _iIterations) -> void {
+	// if (pawn == nullptr) return;
+	// if (pawn->Controller == nullptr) return;
+	// if (reinterpret_cast<ADishonoredNPCController*>(pawn->Controller)->m_pAIBrain == nullptr) return;
+	// const auto brain = reinterpret_cast<ADishonoredNPCController*>(pawn->Controller)->m_pAIBrain;
+	// if (brain->m_pBrainTweaks == nullptr) return;
+	// if (brain->m_pBrainTweaks->m_VersionNum == 696969) return;
+	return tick_npc_walking_hook::instance()->hook_.original()(pawn, _fDeltaTime, _iIterations);
 }
 
 DEFINE_HOOK(

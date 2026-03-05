@@ -557,6 +557,165 @@ private:
 	}
 };
 
+template<typename InElementType>
+class TTransArray
+{
+public:
+	using ElementType = InElementType;
+	using ElementPointer = ElementType*;
+	using ElementReference = ElementType&;
+	using ElementConstPointer = const ElementType*;
+	using ElementConstReference = const ElementType&;
+	using Iterator = TIterator<TArray<ElementType>>;
+
+	ElementPointer ArrayData;
+	int32_t ArrayCount;
+	int32_t ArrayMax;
+	void* Owner;
+
+public:
+	TTransArray() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0)
+	{
+		//ReAllocate(sizeof(ElementType));
+	}
+
+	~TTransArray()
+	{
+		//clear();
+		//::operator delete(ArrayData, ArrayMax * sizeof(ElementType));
+	}
+
+public:
+	ElementConstReference operator[](int32_t index) const
+	{
+		return ArrayData[index];
+	}
+
+	ElementReference operator[](int32_t index)
+	{
+		return ArrayData[index];
+	}
+
+	ElementConstReference at(int32_t index) const
+	{
+		return ArrayData[index];
+	}
+
+	ElementReference at(int32_t index)
+	{
+		return ArrayData[index];
+	}
+
+	ElementConstPointer data() const
+	{
+		return ArrayData;
+	}
+
+	void push_back(ElementConstReference newElement)
+	{
+		if (ArrayCount >= ArrayMax)
+		{
+			ReAllocate(sizeof(ElementType) * (ArrayCount + 1));
+		}
+
+		new(&ArrayData[ArrayCount]) ElementType(newElement);
+		ArrayCount++;
+	}
+
+	void push_back(ElementReference& newElement)
+	{
+		if (ArrayCount >= ArrayMax)
+		{
+			ReAllocate(sizeof(ElementType) * (ArrayCount + 1));
+		}
+
+		new(&ArrayData[ArrayCount]) ElementType(newElement);
+		ArrayCount++;
+	}
+
+	void pop_back()
+	{
+		if (ArrayCount > 0)
+		{
+			ArrayCount--;
+			ArrayData[ArrayCount].~ElementType();
+		}
+	}
+
+	void clear()
+	{
+		for (int32_t i = 0; i < ArrayCount; i++)
+		{
+			ArrayData[i].~ElementType();
+		}
+
+		ArrayCount = 0;
+	}
+
+	int32_t size() const
+	{
+		return ArrayCount;
+	}
+
+	int32_t capacity() const
+	{
+		return ArrayMax;
+	}
+
+	bool empty() const
+	{
+		if (ArrayData)
+		{
+			return (size() == 0);
+		}
+
+		return true;
+	}
+
+	Iterator begin()
+	{
+		return Iterator(ArrayData);
+	}
+
+	Iterator end()
+	{
+		return Iterator(ArrayData + ArrayCount);
+	}
+
+	std::vector<InElementType> vector() {
+		if (!ArrayData || ArrayCount == 0) {
+			return {};
+		}
+		return std::vector<InElementType>(ArrayData, ArrayData + ArrayCount);
+	}
+
+private:
+	void ReAllocate(int32_t newArrayMax)
+	{
+		ElementPointer newArrayData = (ElementPointer)::operator new(newArrayMax * sizeof(ElementType));
+		int32_t newNum = ArrayCount;
+
+		if (newArrayMax < newNum)
+		{
+			newNum = newArrayMax;
+		}
+
+		for (int32_t i = 0; i < newNum; i++)
+		{
+			new(newArrayData + i) ElementType(std::move(ArrayData[i]));
+		}
+
+		for (int32_t i = 0; i < ArrayCount; i++)
+		{
+			ArrayData[i].~ElementType();
+		}
+
+		::operator delete(ArrayData, ArrayMax * sizeof(ElementType));
+		ArrayData = newArrayData;
+		ArrayMax = newArrayMax;
+	}
+};
+
 template<typename TKey, typename TValue>
 class TMap
 {

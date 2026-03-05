@@ -1,11 +1,60 @@
 #include "world.h"
 
+#include "locomotion.h"
 #include "engine/state.h"
 #include "mods/spawn.h"
 
 auto __thiscall tick_world_hook::trampoline(UWorld* world, uint32_t type, float delta) -> void {
+    const auto player_controller = get_state()->controller;
+
     if (auto requests = get_state()->event_queue.handle(); !requests.empty()) {
         mods::handle_npc_requests(world, requests);
+    }
+
+    if (world->PersistentLevel == nullptr) {
+        return tick_world_hook::instance()->hook_.original()(world, type, delta);
+    }
+
+    std::vector<ADishonoredNPCPawn*> npc_pawns;
+    std::vector<int64_t> npc_ids_marked_for_deletion;
+
+    auto& spawned = get_state()->spawned_npcs;
+
+    for (auto actor : world->PersistentLevel->Actors)
+    {
+        if (!actor) continue;
+        if (!actor->IsA(ADishonoredNPCPawn::StaticClass())) continue;
+        auto npc_pawn = static_cast<ADishonoredNPCPawn*>(actor);
+
+        for (auto npc_id : spawned)
+        {
+            if (npc_pawn->m_NPCID != npc_id) continue;
+            if (npc_pawn->m_bIsOfficiallyDead) npc_ids_marked_for_deletion.emplace_back(npc_id);
+            else npc_pawns.emplace_back(npc_pawn);
+            break;
+        }
+    }
+
+    for (int64_t npc_id : npc_ids_marked_for_deletion)
+    {
+        spawned.erase(
+            std::ranges::remove(spawned, npc_id).begin(),
+            spawned.end()
+        );
+    }
+
+    for (auto npc_pawn : npc_pawns) {
+        auto rotation_intent = npc_pawn->m_NPCRotationIntent[static_cast<size_t>(EDisFaceToPriority::DisFaceToPriority_AILoco)];
+        FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.original()(&rotation_intent, npc_pawn, player_controller->Pawn->Location, 99999.f, 99999.f, EDisFaceToPriority::DisFaceToPriority_AILoco, player_controller, player_controller->Name);
+        npc_pawn->m_CurrentNPCRotationPriority = EDisFaceToPriority::DisFaceToPriority_AILoco;
+
+        FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.original()(reinterpret_cast<FArkComponentLookAt *>(npc_pawn->m_pCpntLookat.Dummy),
+          npc_pawn, &npc_pawn->Name, 1, (player_controller->Pawn->Location + FVector{0, 0, 60}), {
+            .m_fHeadInfluence = 99999.f,
+            .m_fTorsoInfluence = 0.f,
+            .m_bTorsoInfIsMoveSpeedDependant = true
+          }, 1.0f
+        );
     }
 
     return tick_world_hook::instance()->hook_.original()(world, type, delta);

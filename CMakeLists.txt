@@ -14,7 +14,9 @@ add_subdirectory(external/minhook)
 add_subdirectory(external/sdk)
 
 file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.png")
-set(RESOURCE_SOURCES "")
+set(RESOURCE_SOURCES ""
+        src/hooks/dishonored/locomotion.h
+        src/hooks/dishonored/locomotion.cpp)
 
 foreach(RES_FILE ${RESOURCE_FILES})
   get_filename_component(RES_NAME ${RES_FILE} NAME)

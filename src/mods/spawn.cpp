@@ -5,6 +5,7 @@
 #include "engine/engine.h"
 #include "sdk.hpp"
 #include "logger.h"
+#include "hooks/dishonored/locomotion.h"
 #include "hooks/engine/static_find_object.h"
 
 auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requests) -> void {
@@ -59,7 +60,7 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
     return;
   }
 
-  auto load_and_duplicate = [&request]<typename T>(T* existing, const std::wstring& pathname) -> std::optional<T*> {
+  auto load_and_duplicate = [&]<typename T>(T* existing, const std::wstring& pathname) -> std::optional<T*> {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
     if (!existing) {
@@ -123,21 +124,48 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   actor->Role = ENetRole::ROLE_Authority;
   actor->m_NPCID = world_info->m_NextNPCID;
   world_info->m_NextNPCID++;
+
   controller->Possess(actor);
   controller_init_npc_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+  controller->m_pAIBrain->m_pBrainTweaks->m_VersionNum = 696969;
 
-  const auto Action = engine::ConstructObject<UDisSeqAct_DialogScriptedChoice>(world, 0);
-  Action->m_bUseTitle = 1;
-  Action->m_Title = *(new FString(L"HELLOOOO"));
-  Action->m_Choices.push_back({
-    .m_ChoiceText = *(new FString(L"HELLOOOO")),
-    .m_bDisablePlayerInputUntilMapChange = 0
-  });
-  Action->m_Choices.push_back({
-    .m_ChoiceText = *(new FString(L"asd")),
-    .m_bDisablePlayerInputUntilMapChange = 0
-  });
-  Action->eventActivated();
+  get_state()->spawned_npcs.emplace_back(actor->m_NPCID);
+
+  // FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.original()(reinterpret_cast<FArkComponentLookAt *>(actor->m_pCpntLookat.Dummy),
+  //   actor, &actor->Name, 1, player_controller->Pawn->Location, {
+  //     .m_fHeadInfluence = 100.0f,
+  //     .m_fTorsoInfluence = 99999.0f,
+  //     .m_bTorsoInfIsMoveSpeedDependant = true
+  //   }, 180.0f
+  // );
+
+  // auto rotation_intent = actor->m_NPCRotationIntent[static_cast<size_t>(EDisFaceToPriority::DisFaceToPriority_AILoco)];
+  // FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.original()(&rotation_intent, actor, player_controller->Pawn->Location, 400.f, 200.f, EDisFaceToPriority::DisFaceToPriority_AILoco, player_controller, player_controller->Name);
+  // actor->m_CurrentNPCRotationPriority = EDisFaceToPriority::DisFaceToPriority_AILoco;
+
+  // const auto brain = reinterpret_cast<UDishonoredAIBrain *>(engine::StaticConstructObject(npc_tweak.value()->m_pBrainTweak->m_pSpawnedObjectClass, controller, "AIBrain"));
+  // if (!brain) {
+  //   LOG("Failed to spawn brain!");
+  //   return;
+  // }
+  // brain->m_pBrainComponentContainer = engine::ConstructObject<UArkComponentContainer>(brain);
+
+  // controller->Possess(actor);
+  // controller->m_pAIBrain = brain;
+  // init_brain_hook::instance()->hook_.original()(brain, actor, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+
+  // const auto Action = engine::ConstructObject<UDisSeqAct_DialogScriptedChoice>(world, 0);
+  // Action->m_bUseTitle = 1;
+  // Action->m_Title = *(new FString(L"HELLOOOO"));
+  // Action->m_Choices.push_back({
+  //   .m_ChoiceText = *(new FString(L"HELLOOOO")),
+  //   .m_bDisablePlayerInputUntilMapChange = 0
+  // });
+  // Action->m_Choices.push_back({
+  //   .m_ChoiceText = *(new FString(L"asd")),
+  //   .m_bDisablePlayerInputUntilMapChange = 0
+  // });
+  // Action->eventActivated();
 }
 
 auto mods::handle_single_npc_request_stepped(NPCSpawnRequest* request) -> void {

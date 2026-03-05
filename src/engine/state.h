@@ -69,7 +69,7 @@ public:
 typedef NPCSpawnRequest::NPCSpawnRequest_PresetType NPC_T;
 
 struct state {
-  std::vector<uint64_t> spawned_npcs;
+  std::vector<int64_t> spawned_npcs = {};
 
   ThreadSafeQueue<NPCSpawnRequest> event_queue;
 

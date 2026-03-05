@@ -12,6 +12,7 @@
 #include "hooks/dishonored/world.h"
 
 #include "engine/state.h"
+#include "hooks/dishonored/locomotion.h"
 #include "hooks/render/end_scene.h"
 
 #include "mods/spawn.h"
@@ -45,6 +46,12 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_hook::instance()->hook_.enable();
     spawn_actor_from_tweaks_hook::instance()->hook_.enable();
 
+    FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.enable();
+    FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.enable();
+    FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.enable();
+    FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
+
+    tick_npc_walking_hook::instance()->hook_.enable();
     tick_world_hook::instance()->hook_.enable();
     init_brain_hook::instance()->hook_.enable();
     tick_brain_hook::instance()->hook_.enable();
@@ -78,6 +85,12 @@ void __stdcall unload(void* module) {
   spawn_actor_hook::instance()->hook_.disable();
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
 
+  FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.disable();
+  FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.disable();
+  FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.disable();
+  FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
+
+  tick_npc_walking_hook::instance()->hook_.disable();
   tick_world_hook::instance()->hook_.disable();
   init_brain_hook::instance()->hook_.disable();
   tick_brain_hook::instance()->hook_.disable();
