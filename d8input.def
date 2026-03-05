@@ -1,0 +1,3 @@
+LIBRARY "dismod"
+EXPORTS
+    DirectInput8Create

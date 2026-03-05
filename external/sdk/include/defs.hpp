@@ -417,7 +417,7 @@ private:
 public:
 	TArray() : ArrayData(nullptr), ArrayCount(0), ArrayMax(0)
 	{
-		//ReAllocate(sizeof(ElementType));
+		// ReAllocate(sizeof(ElementType));
 	}
 
 	~TArray()

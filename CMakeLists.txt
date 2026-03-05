@@ -12,6 +12,7 @@ endif()
 add_subdirectory(external/libhat)
 add_subdirectory(external/minhook)
 add_subdirectory(external/sdk)
+add_subdirectory(external/cpptrace)
 
 file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.png")
 set(RESOURCE_SOURCES "")
@@ -35,6 +36,7 @@ set(DXSDK_ROOT "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)" CACHE 
 set(DXSDK_INCLUDE "${DXSDK_ROOT}/Include")
 set(DXSDK_LIB "${DXSDK_ROOT}/Lib/x86")
 link_directories("${DXSDK_LIB}")
+
 
 add_library(dismod SHARED
         library.cpp
@@ -71,10 +73,12 @@ add_library(dismod SHARED
         external/imgui/backends/imgui_impl_win32.cpp
 
         ${RESOURCE_SOURCES}
+        ${DINPUT8_DEF}
 )
 target_include_directories(dismod PUBLIC include src
         external/imgui
         external/imgui/backends
+        external/cpptrace/include
         ${CMAKE_CURRENT_SOURCE_DIR}/resources
         ${DXSDK_INCLUDE}
 )
@@ -82,6 +86,10 @@ target_link_libraries(dismod PUBLIC
         libhat
         sdk
         minhook
+        cpptrace::cpptrace
         d3d9
         d3dx9
 )
+if(MSVC)
+  target_link_options(dismod PUBLIC PUBLIC "/EXPORT:DirectInput8Create=DirectInput8Create")
+endif()

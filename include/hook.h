@@ -30,8 +30,7 @@ public:
     
     std::call_once(init_flag, []() {
       if (MH_Initialize() != MH_OK) {
-        // LOG("failed to initialize minhook");
-        return;
+        LOG("failed to initialize minhook");
       }
     });
 
