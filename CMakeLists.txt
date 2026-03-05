@@ -14,13 +14,7 @@ add_subdirectory(external/minhook)
 add_subdirectory(external/sdk)
 
 file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.png")
-set(RESOURCE_SOURCES ""
-        src/hooks/dishonored/locomotion.h
-        src/hooks/dishonored/locomotion.cpp
-        src/hooks/dishonored/save.h
-        src/hooks/dishonored/save.cpp
-        src/hooks/dishonored/npc.h
-        src/hooks/dishonored/npc.cpp)
+set(RESOURCE_SOURCES "")
 
 foreach(RES_FILE ${RESOURCE_FILES})
   get_filename_component(RES_NAME ${RES_FILE} NAME)
@@ -53,18 +47,19 @@ add_library(dismod SHARED
         src/hooks/engine/static_construct_object.cpp
         src/hooks/engine/static_duplicate_object.cpp
         src/hooks/engine/spawn_actor_from_tweaks.cpp
-        src/hooks/engine/spawn_actor.cpp
 
         src/engine/engine.cpp
         src/engine/state.cpp
 
         src/mods/spawn.cpp
-        src/hooks/dishonored/world.h
+        src/mods/world.cpp
+
+        src/hooks/dishonored/locomotion.cpp
+        src/hooks/dishonored/npc.cpp
+        src/hooks/dishonored/save.cpp
         src/hooks/dishonored/world.cpp
 
         src/render/render.cpp
-        src/render/render.h
-        src/hooks/render/end_scene.h
         src/hooks/render/end_scene.cpp
 
         external/imgui/imgui.cpp

@@ -3,7 +3,6 @@
 
 #include "hook.h"
 #include <sdk.hpp>
-#include "engine/engine.h"
 
 #define LOG_SCO 0 // do not enable it crashes the game
 #define LOG_SCO_ME 0

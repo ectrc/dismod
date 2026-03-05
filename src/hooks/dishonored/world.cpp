@@ -96,10 +96,10 @@ auto __thiscall UWorld_SingleLineCheck_hook::trampoline(UWorld *world, FCheckRes
     return instance()->hook_.original()(world, Hit, SourceActor, End, Start, TraceFlags, Extent, SourceLight);
 }
 
-inline auto __thiscall FRotator_Vector_hook::trampoline(FRotator* rot, FVector* vec) -> FVector* {
+auto __thiscall FRotator_Vector_hook::trampoline(FRotator* rot, FVector* vec) -> FVector* {
     return instance()->hook_.original()(rot, vec);
 }
 
-inline auto __thiscall APlayerController_GetPlayerViewPoint_hook::trampoline(APlayerController *controller, FVector *out_Location, FRotator *out_Rotation) -> void {
+auto __thiscall APlayerController_GetPlayerViewPoint_hook::trampoline(APlayerController *controller, FVector *out_Location, FRotator *out_Rotation) -> void {
     return instance()->hook_.original()(controller, out_Location, out_Rotation);
 }

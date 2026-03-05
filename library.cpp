@@ -8,7 +8,6 @@
 #include "hooks/engine/static_duplicate_object.h"
 #include "hooks/engine/static_construct_object.h"
 #include "hooks/engine/spawn_actor_from_tweaks.h"
-#include "hooks/engine/spawn_actor.h"
 #include "hooks/dishonored/world.h"
 
 #include "engine/state.h"
@@ -17,7 +16,6 @@
 #include "hooks/dishonored/save.h"
 #include "hooks/render/end_scene.h"
 
-#include "mods/spawn.h"
 #include "render/render.h"
 
 auto __stdcall thread(void* module) -> void {

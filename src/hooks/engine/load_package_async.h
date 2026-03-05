@@ -3,7 +3,6 @@
 
 #include "hook.h"
 #include <sdk.hpp>
-#include "engine/engine.h"
 
 DEFINE_HOOK_C(
     UObject_LoadPackageAsync,

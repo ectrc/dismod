@@ -3,7 +3,6 @@
 
 #include "hook.h"
 #include <sdk.hpp>
-#include "engine/engine.h"
 
 // To find the pattern:
 //  Scan for: "55 8B EC 8B 45 ? 8B 55 ? 56 8B F1 8B 4D ? 50 51 52 8B CE E8 ? ? ? ? 8B 86" = "ADisWhiskeyBottle::OnRigidBodyCollision"

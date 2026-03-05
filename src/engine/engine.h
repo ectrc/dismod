@@ -11,7 +11,7 @@ namespace engine {
   template<typename T>
   auto LoadObject(UObject* outer, const wchar_t* outer_name, const wchar_t* file_name, ELoadFlags load_flags, UPackageMap* sandbox) -> T* {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
-    return static_cast<T*>(UObject_StaticLoadObject_hook::instance()->hook_.original()(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox));
+    return static_cast<T*>(UObject_StaticLoadObject_hook::instance()->hook_.original()(T::StaticClass(), outer, outer_name, file_name, load_flags, sandbox, false));
   }
 
   template<typename T>

@@ -5,8 +5,13 @@
 #include "engine/engine.h"
 #include "sdk.hpp"
 #include "logger.h"
+#include "world.h"
 
 #include "hooks/dishonored/locomotion.h"
+#include "hooks/dishonored/npc.h"
+#include "hooks/dishonored/world.h"
+#include "hooks/engine/load_package_async.h"
+#include "hooks/engine/spawn_actor_from_tweaks.h"
 #include "hooks/engine/static_find_object.h"
 
 auto mods::handle_npc_requests(UWorld* world, std::vector<NPCSpawnRequest>& requests) -> void {
@@ -22,24 +27,10 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
     return;
   }
 
-  FVector original_location = player_controller->Location;
-  FRotator spawn_rotation = player_controller->Rotation;
-  get_player_viewpoint_hook::instance()->hook_.original()(player_controller, &original_location, &spawn_rotation);
-
-  FVector look_vector = {};
-  frotator_to_look_vector_hook::instance()->hook_.original()(&spawn_rotation, &look_vector);
-  FVector end = {};
-  end.X = original_location.X + look_vector.X * 10000;
-  end.Y = original_location.Y + look_vector.Y * 10000;
-  end.Z = original_location.Z + look_vector.Z * 10000;
-
-  FCheckResult check = {};
-  uworld_line_check_hook::instance()->hook_.original()(world, &check, player_controller->Pawn, &end, &original_location, ETraceFlags::TRACE_World, player_controller->Pawn->GetCollisionExtent(), nullptr);
-
   const auto check_valid = []<typename T>(const std::wstring& pathname) -> T* {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
-    auto existing = static_find_object_hook::instance()->hook_.original()(T::StaticClass(), nullptr, pathname.c_str(), true);
+    auto existing = UObject_StaticFindObject_hook::instance()->hook_.original()(T::StaticClass(), nullptr, pathname.c_str(), true);
     if (existing == nullptr) return nullptr;
     if (!existing->Name.IsValid()) return nullptr;
 
@@ -53,7 +44,7 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   if (!request.loaded_package && (!existing_npc_tweak || !existing_ai_tweak || !existing_faction_tweak)) {
     auto* heap_request = new NPCSpawnRequest(request);
 
-    engine::LoadPackageAsync(request.package_name.c_str(), [](UObject* thing, void* request) -> void {
+    UObject_LoadPackageAsync_hook::instance()->hook_.original()(request.package_name.c_str(), [](UObject* thing, void* request) -> void {
       const auto casted_request = static_cast<NPCSpawnRequest *>(request);
       mods::handle_single_npc_request_stepped(casted_request);
     }, heap_request, new FGuid());
@@ -65,7 +56,7 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
 
     if (!existing) {
-      const auto loaded = engine::LoadObject<T>( nullptr, pathname.c_str(), nullptr, engine::load_flags::seek_free, nullptr);
+      const auto loaded = engine::LoadObject<T>( nullptr, pathname.c_str(), nullptr, LOAD_SeekFree, nullptr);
       if (loaded == nullptr) {
         LOG("Failed to load from disk!");
         return std::nullopt;
@@ -110,13 +101,15 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   }
   npc_tweak.value()->m_pFactionTweak = faction_tweak.value();
 
-  const auto controller = reinterpret_cast<ADishonoredNPCController*>(engine::spawn_actor(world, ADishonoredNPCController::StaticClass(), 0, &check.Location));
+  auto hit_location = mods::position_looking_at(world);
+
+  const auto controller = reinterpret_cast<ADishonoredNPCController*>(UWorld_SpawnActor_hook::instance()->hook_.original()(world, ADishonoredNPCController::StaticClass(), 0, &hit_location, &player_controller->Pawn->Rotation, nullptr, 0, 1, nullptr, nullptr, 0, 1, nullptr));
   if (!controller) {
     LOG("Failed to spawn controller!");
     return;
   }
 
-  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(engine::spawn_actor_by_tweaks(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &check.Location, nullptr, nullptr, 0, 1, controller));
+  const auto actor = reinterpret_cast<ADishonoredNPCPawn*>(UDisTweaksBase_SpawnActor_hook::instance()->hook_.original()(npc_tweak.value(), EeDisTweaksSpawnType::eDisTweaksSpawnType_InGame, 0, &hit_location, &player_controller->Pawn->Rotation, nullptr, 0, 1, controller, nullptr, 0, 1));
   if (actor == nullptr) {
     LOG("Failed to spawn actor!");
     return;
@@ -127,7 +120,7 @@ auto mods::handle_single_npc_request(UWorld* world, NPCSpawnRequest request) -> 
   world_info->m_NextNPCID++;
 
   controller->Possess(actor);
-  controller_init_npc_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
+  ADishonoredNPCController_InitNPC_hook::instance()->hook_.original()(controller, npc_tweak.value()->m_pBrainTweak, EDisAISuspicionLevel::DAISL_Unsuspecting);
   controller->m_pAIBrain->m_pBrainTweaks->m_VersionNum = 696969;
 
   get_state()->spawned_npcs.emplace_back(actor->m_NPCID);
