@@ -13,6 +13,8 @@
 
 #include "engine/state.h"
 #include "hooks/dishonored/locomotion.h"
+#include "hooks/dishonored/npc.h"
+#include "hooks/dishonored/save.h"
 #include "hooks/render/end_scene.h"
 
 #include "mods/spawn.h"
@@ -35,7 +37,9 @@ auto __stdcall thread(void* module) -> void {
   // *state->use_seek_free_loading = false;
   LOG("use seek free {}", *state->use_seek_free_loading ? "yes" : "no");
 
+  // TODO: make helper functions per category
   {
+    // engine hooks
     process_event_hook::instance()->hook_.enable();
     load_package_hook::instance()->hook_.enable();
     load_package_async_hook::instance()->hook_.enable();
@@ -46,23 +50,29 @@ auto __stdcall thread(void* module) -> void {
     spawn_actor_hook::instance()->hook_.enable();
     spawn_actor_from_tweaks_hook::instance()->hook_.enable();
 
+    // locomotion hooks
     FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.enable();
+    FArkComponentLocomotion_MovePawn_hook::instance()->hook_.enable();
     FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.enable();
     FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.enable();
     FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
 
-    tick_npc_walking_hook::instance()->hook_.enable();
-    tick_world_hook::instance()->hook_.enable();
-    init_brain_hook::instance()->hook_.enable();
-    tick_brain_hook::instance()->hook_.enable();
-    controller_init_npc_hook::instance()->hook_.enable();
-    uworld_line_check_hook::instance()->hook_.enable();
-    frotator_to_look_vector_hook::instance()->hook_.enable();
-    get_player_viewpoint_hook::instance()->hook_.enable();
+    // world hooks
+    UWorld_Tick_hook::instance()->hook_.enable();
+    UWorld_SingleLineCheck_hook::instance()->hook_.enable();
+    FRotator_Vector_hook::instance()->hook_.enable();
+    APlayerController_GetPlayerViewPoint_hook::instance()->hook_.enable();
 
-    fname_tostring_hook::instance()->hook_.enable();
-    save_load_cmd_hook::instance()->hook_.enable();
+    // saving hooks
+    FName_ToString_hook::instance()->hook_.enable();
+    UDishonoredEngine_DisSave_hook::instance()->hook_.enable();
 
+    // npc hooks
+    UDishonoredAIBrain_InitBrain_hook::instance()->hook_.enable();
+    UDishonoredAIBrain_TickBrain_hook::instance()->hook_.enable();
+    ADishonoredNPCController_InitNPC_hook::instance()->hook_.enable();
+
+    // render hooks
     end_scene_hook::instance()->hook_.enable();
     process_input_hook::instance()->hook_.enable();
   }
@@ -86,26 +96,27 @@ void __stdcall unload(void* module) {
   spawn_actor_from_tweaks_hook::instance()->hook_.disable();
 
   FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.disable();
+  FArkComponentLocomotion_MovePawn_hook::instance()->hook_.disable();
   FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.disable();
   FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.disable();
   FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
 
-  tick_npc_walking_hook::instance()->hook_.disable();
-  tick_world_hook::instance()->hook_.disable();
-  init_brain_hook::instance()->hook_.disable();
-  tick_brain_hook::instance()->hook_.disable();
-  controller_init_npc_hook::instance()->hook_.disable();
-  uworld_line_check_hook::instance()->hook_.disable();
-  frotator_to_look_vector_hook::instance()->hook_.disable();
-  get_player_viewpoint_hook::instance()->hook_.disable();
+  UWorld_Tick_hook::instance()->hook_.disable();
+  UWorld_SingleLineCheck_hook::instance()->hook_.disable();
+  FRotator_Vector_hook::instance()->hook_.disable();
+  APlayerController_GetPlayerViewPoint_hook::instance()->hook_.disable();
 
-  fname_tostring_hook::instance()->hook_.disable();
-  save_load_cmd_hook::instance()->hook_.disable();
+  FName_ToString_hook::instance()->hook_.disable();
+  UDishonoredEngine_DisSave_hook::instance()->hook_.disable();
+
+  UDishonoredAIBrain_InitBrain_hook::instance()->hook_.disable();
+  UDishonoredAIBrain_TickBrain_hook::instance()->hook_.disable();
+  ADishonoredNPCController_InitNPC_hook::instance()->hook_.disable();
 
   end_scene_hook::instance()->hook_.disable();
   process_input_hook::instance()->hook_.disable();
-  render::cleanup();
 
+  render::cleanup();
   LOG("Unloaded!");
 }
 

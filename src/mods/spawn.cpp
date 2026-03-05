@@ -5,6 +5,7 @@
 #include "engine/engine.h"
 #include "sdk.hpp"
 #include "logger.h"
+
 #include "hooks/dishonored/locomotion.h"
 #include "hooks/engine/static_find_object.h"
 

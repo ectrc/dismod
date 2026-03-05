@@ -12,6 +12,10 @@ auto __thiscall FArkComponentLocomotion_SendTouchAndBumpEvents_hook::trampoline(
     return instance()->hook_.original()(component, check_result, preview);
 }
 
+auto __thiscall FArkComponentLocomotion_MovePawn_hook::trampoline(FArkComponentLocomotion* component, float delta_time, uint32_t preview) -> void {
+    return instance()->hook_.original()(component, delta_time, preview);
+}
+
 auto __thiscall FArkComponentLookAt_StartLookAtLocation_hook::trampoline(FArkComponentLookAt* component, const void *asker, const FName *asker_name, int priority, FVector location, const FLookAtInfluence& influence, float duration) -> uint64_t {
     return instance()->hook_.original()(component, asker, asker_name, priority, location, influence, duration);
 }

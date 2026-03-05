@@ -4,7 +4,7 @@
 #include "engine/state.h"
 #include "mods/spawn.h"
 
-auto __thiscall tick_world_hook::trampoline(UWorld* world, uint32_t type, float delta) -> void {
+auto __thiscall UWorld_Tick_hook::trampoline(UWorld* world, uint32_t type, float delta) -> void {
     const auto player_controller = get_state()->controller;
 
     if (auto requests = get_state()->event_queue.handle(); !requests.empty()) {
@@ -12,7 +12,7 @@ auto __thiscall tick_world_hook::trampoline(UWorld* world, uint32_t type, float 
     }
 
     if (world->PersistentLevel == nullptr) {
-        return tick_world_hook::instance()->hook_.original()(world, type, delta);
+        return instance()->hook_.original()(world, type, delta);
     }
 
     std::vector<ADishonoredNPCPawn*> npc_pawns;
@@ -57,5 +57,17 @@ auto __thiscall tick_world_hook::trampoline(UWorld* world, uint32_t type, float 
         );
     }
 
-    return tick_world_hook::instance()->hook_.original()(world, type, delta);
+    return instance()->hook_.original()(world, type, delta);
+}
+
+auto __thiscall UWorld_SingleLineCheck_hook::trampoline(UWorld *world, FCheckResult *Hit, AActor *SourceActor, const FVector *End, const FVector *Start, ETraceFlags TraceFlags, const FVector &Extent, ULightComponent *SourceLight) -> bool {
+    return instance()->hook_.original()(world, Hit, SourceActor, End, Start, TraceFlags, Extent, SourceLight);
+}
+
+inline auto __thiscall FRotator_Vector_hook::trampoline(FRotator* rot, FVector* vec) -> FVector* {
+    return instance()->hook_.original()(rot, vec);
+}
+
+inline auto __thiscall APlayerController_GetPlayerViewPoint_hook::trampoline(APlayerController *controller, FVector *out_Location, FRotator *out_Rotation) -> void {
+    return instance()->hook_.original()(controller, out_Location, out_Rotation);
 }

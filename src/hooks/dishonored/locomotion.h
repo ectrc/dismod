@@ -25,6 +25,13 @@ DEFINE_HOOK(
     void, FArkComponentLocomotion* component, void* check_result, uint32_t preview
 );
 
+DEFINE_HOOK(
+    FArkComponentLocomotion_MovePawn,
+    "55 8B EC 53 56 57 8B F9 8B B7",
+    void,
+    FArkComponentLocomotion* component, float delta_time, uint32_t preview
+);
+
 struct FArkComponentLookAt : public FArkComponentBase, public IArkComponentPreAsyncWork {
     uint8_t padding[0x268];
 };

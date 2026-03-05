@@ -16,7 +16,11 @@ add_subdirectory(external/sdk)
 file(GLOB RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.png")
 set(RESOURCE_SOURCES ""
         src/hooks/dishonored/locomotion.h
-        src/hooks/dishonored/locomotion.cpp)
+        src/hooks/dishonored/locomotion.cpp
+        src/hooks/dishonored/save.h
+        src/hooks/dishonored/save.cpp
+        src/hooks/dishonored/npc.h
+        src/hooks/dishonored/npc.cpp)
 
 foreach(RES_FILE ${RESOURCE_FILES})
   get_filename_component(RES_NAME ${RES_FILE} NAME)
