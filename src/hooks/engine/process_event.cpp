@@ -4,7 +4,7 @@
 #include "engine/engine.h"
 #include "mods/spawn.h"
 
-auto __thiscall process_event_hook::trampoline(UObject* object, UFunction* function, void* params, void* result) -> void {
+auto __thiscall UObject_ProcessEvent_hook::trampoline(UObject* object, UFunction* function, void* params, void* result) -> void {
   if (object == nullptr || function == nullptr) return;
 
 #if LOG_PE

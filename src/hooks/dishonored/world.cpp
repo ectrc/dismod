@@ -4,6 +4,38 @@
 #include "engine/state.h"
 #include "mods/spawn.h"
 
+auto __thiscall UWorld_SpawnActor_hook::trampoline(
+  UWorld* base,
+  UClass* class_,
+  FName in_name,
+  const FVector* location,
+  const FRotator* rotation,
+  AActor* template_actor,
+  uint32_t no_collision_fail,
+  uint32_t remote_owned,
+  AActor* owner,
+  APawn* instigator,
+  uint32_t no_fail,
+  uint32_t out_of_bend_time,
+  void* init_func
+) -> AActor* {
+    return instance()->hook_.original()(
+      base,
+      class_,
+      in_name,
+      location,
+      rotation,
+      template_actor,
+      no_collision_fail,
+      remote_owned,
+      owner,
+      instigator,
+      no_fail,
+      out_of_bend_time,
+      init_func
+    );
+}
+
 auto __thiscall UWorld_Tick_hook::trampoline(UWorld* world, uint32_t type, float delta) -> void {
     const auto player_controller = get_state()->controller;
 

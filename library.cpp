@@ -40,15 +40,14 @@ auto __stdcall thread(void* module) -> void {
   // TODO: make helper functions per category
   {
     // engine hooks
-    process_event_hook::instance()->hook_.enable();
-    load_package_hook::instance()->hook_.enable();
-    load_package_async_hook::instance()->hook_.enable();
-    static_load_object_hook::instance()->hook_.enable();
-    static_construct_object_hook::instance()->hook_.enable();
-    static_duplicate_object_hook::instance()->hook_.enable();
-    static_find_object_hook::instance()->hook_.enable();
-    spawn_actor_hook::instance()->hook_.enable();
-    spawn_actor_from_tweaks_hook::instance()->hook_.enable();
+    UObject_ProcessEvent_hook::instance()->hook_.enable();
+    UObject_LoadPackage_hook::instance()->hook_.enable();
+    UObject_LoadPackageAsync_hook::instance()->hook_.enable();
+    UObject_StaticLoadObject_hook::instance()->hook_.enable();
+    UObject_StaticConstructObject_hook::instance()->hook_.enable();
+    UObject_StaticDuplicateObject_hook::instance()->hook_.enable();
+    UObject_StaticFindObject_hook::instance()->hook_.enable();
+    UDisTweaksBase_SpawnActor_hook::instance()->hook_.enable();
 
     // locomotion hooks
     FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.enable();
@@ -58,6 +57,7 @@ auto __stdcall thread(void* module) -> void {
     FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
 
     // world hooks
+    UWorld_SpawnActor_hook::instance()->hook_.enable();
     UWorld_Tick_hook::instance()->hook_.enable();
     UWorld_SingleLineCheck_hook::instance()->hook_.enable();
     FRotator_Vector_hook::instance()->hook_.enable();
@@ -85,15 +85,14 @@ auto __stdcall thread(void* module) -> void {
 void __stdcall unload(void* module) {
   Sleep(2000);
 
-  process_event_hook::instance()->hook_.disable();
-  load_package_hook::instance()->hook_.disable();
-  load_package_async_hook::instance()->hook_.disable();
-  static_load_object_hook::instance()->hook_.disable();
-  static_find_object_hook::instance()->hook_.disable();
-  static_construct_object_hook::instance()->hook_.disable();
-  static_duplicate_object_hook::instance()->hook_.disable();
-  spawn_actor_hook::instance()->hook_.disable();
-  spawn_actor_from_tweaks_hook::instance()->hook_.disable();
+  UObject_ProcessEvent_hook::instance()->hook_.disable();
+  UObject_LoadPackage_hook::instance()->hook_.disable();
+  UObject_LoadPackageAsync_hook::instance()->hook_.disable();
+  UObject_StaticLoadObject_hook::instance()->hook_.disable();
+  UObject_StaticConstructObject_hook::instance()->hook_.disable();
+  UObject_StaticDuplicateObject_hook::instance()->hook_.disable();
+  UObject_StaticFindObject_hook::instance()->hook_.disable();
+  UDisTweaksBase_SpawnActor_hook::instance()->hook_.disable();
 
   FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.disable();
   FArkComponentLocomotion_MovePawn_hook::instance()->hook_.disable();
@@ -101,6 +100,7 @@ void __stdcall unload(void* module) {
   FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.disable();
   FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
 
+  UWorld_SpawnActor_hook::instance()->hook_.disable();
   UWorld_Tick_hook::instance()->hook_.disable();
   UWorld_SingleLineCheck_hook::instance()->hook_.disable();
   FRotator_Vector_hook::instance()->hook_.disable();

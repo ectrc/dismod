@@ -1,6 +1,6 @@
 #include "spawn_actor_from_tweaks.h"
 
-auto __thiscall spawn_actor_from_tweaks_hook::trampoline(
+auto __thiscall UDisTweaksBase_SpawnActor_hook::trampoline(
   UDisTweaksBase* base,
   EeDisTweaksSpawnType spawn_type,
   FName in_name,
