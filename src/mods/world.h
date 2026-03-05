@@ -7,6 +7,7 @@
 
 namespace mods {
     auto position_looking_at(UWorld* world) -> FVector;
+    auto position_infront() -> FVector;
 }
 
 #endif

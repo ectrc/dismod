@@ -1,4 +1,5 @@
 #include "world.h"
+#include "mods/world.h"
 
 #include "locomotion.h"
 #include "engine/state.h"
@@ -75,13 +76,15 @@ auto __thiscall UWorld_Tick_hook::trampoline(UWorld* world, uint32_t type, float
         );
     }
 
+    auto position = mods::position_infront();
     for (auto npc_pawn : npc_pawns) {
         auto rotation_intent = npc_pawn->m_NPCRotationIntent[static_cast<size_t>(EDisFaceToPriority::DisFaceToPriority_AILoco)];
-        FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.original()(&rotation_intent, npc_pawn, player_controller->Pawn->Location, 99999.f, 99999.f, EDisFaceToPriority::DisFaceToPriority_AILoco, player_controller, player_controller->Name);
+        FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.original()(&rotation_intent, npc_pawn, position, 99999.f, 99999.f, EDisFaceToPriority::DisFaceToPriority_AILoco, player_controller, player_controller->Name);
         npc_pawn->m_CurrentNPCRotationPriority = EDisFaceToPriority::DisFaceToPriority_AILoco;
 
         FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.original()(reinterpret_cast<FArkComponentLookAt *>(npc_pawn->m_pCpntLookat.Dummy),
-          npc_pawn, &npc_pawn->Name, 1, (player_controller->Pawn->Location + FVector{0, 0, 60}), {
+          // npc_pawn, &npc_pawn->Name, 1, (player_controller->Pawn->Location + FVector{0, 0, 60}), {
+          npc_pawn, &npc_pawn->Name, 1, position, {
             .m_fHeadInfluence = 99999.f,
             .m_fTorsoInfluence = 0.f,
             .m_bTorsoInfIsMoveSpeedDependant = true
