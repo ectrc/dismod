@@ -2,24 +2,14 @@
 #define load_package_h
 
 #include "hook.h"
-
-#include <memory>
 #include <sdk.hpp>
-
 #include "engine/engine.h"
 
-typedef UPackage* (__cdecl *load_package_t)(UPackage* in, const wchar_t* file_name, engine::load_flags load_flags);
-
-class load_package_hook {
-public:
-  load_package_hook();
-  static auto instance() -> std::shared_ptr<load_package_hook>;
-  static auto __cdecl trampoline(UPackage* in, const wchar_t* file_name, engine::load_flags load_flags) -> UPackage*;
-
-public:
-  base_hook<load_package_t> hook_;
-private:
-  static std::shared_ptr<load_package_hook> instance_;
-};
+DEFINE_HOOK_C(
+    load_package,
+    "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 50 A1 ?? ?? ?? ?? 33 C5 89 45 EC",
+    UPackage*,
+    UPackage* in, const wchar_t* file_name, engine::load_flags load_flags
+);
 
 #endif

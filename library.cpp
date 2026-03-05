@@ -35,7 +35,7 @@ auto __stdcall thread(void* module) -> void {
   state->use_seek_free_loading = reinterpret_cast<bool*>(base + 0x101B24C);
 
   // *state->use_seek_free_loading = false;
-  LOG("use seek free {}", *state->use_seek_free_loading ? "yes" : "no");
+  // LOG("use seek free {}", *state->use_seek_free_loading ? "yes" : "no");
 
   // TODO: make helper functions per category
   {

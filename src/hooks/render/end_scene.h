@@ -35,7 +35,7 @@ DEFINE_HOOK(
 
 inline auto __thiscall process_input_hook::trampoline(ADishonoredPlayerController* controller, uint32_t mask) -> boolean {
     if (render::draw_enabled.load()) return false;
-    return process_input_hook::instance()->hook_.original()(controller, mask);
+    return instance()->hook_.original()(controller, mask);
 }
 
 #endif

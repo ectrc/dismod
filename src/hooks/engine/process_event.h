@@ -2,29 +2,15 @@
 #define process_event_h
 
 #include "hook.h"
-
-#include <memory>
 #include <sdk.hpp>
 
 #define LOG_PE 0
 
-typedef void (__thiscall *process_event_t)(UObject* object, UFunction* function, void* params, void* result);
-
-class process_event_hook {
-public:
-  process_event_hook();
-  static auto instance() -> std::shared_ptr<process_event_hook>;
-
-#ifdef __INTELLISENSE__
-  static auto trampoline(UObject* object, UFunction* function, void* params, void* result) -> void;
-#else
-  static auto __thiscall trampoline(UObject* object, UFunction* function, void* params, void* result) -> void;
-#endif
-
-public:
-  base_hook<process_event_t> hook_;
-private:
-  static std::shared_ptr<process_event_hook> instance_;
-};
+DEFINE_HOOK(
+    process_event,
+    "55 8B EC 6A ?? 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC ?? A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 56 57 50 8D 45 ?? 64 A3 ?? ?? ?? ?? 8B F1",
+    void,
+    UObject* object, UFunction* function, void* params, void* result
+);
 
 #endif

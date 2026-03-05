@@ -74,5 +74,5 @@ auto APIENTRY end_scene_hook::trampoline(LPDIRECT3DDEVICE9 device) -> HRESULT {
   render::draw_to_texture(device);
   render::draw_overlay(device);
 
-  return end_scene_hook::instance()->hook_.original()(device);
+  return instance()->hook_.original()(device);
 }

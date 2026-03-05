@@ -4,5 +4,5 @@ auto __cdecl static_duplicate_object_hook::trampoline(UObject *SourceObject, UOb
 #if LOG_SDO
     LOG("StaticDuplicateObject({}, {})", SourceObject != nullptr ? SourceObject->GetName() : "nullptr", DestOuter != nullptr ? DestOuter->GetName() : "nullptr");
 #endif
-    return static_duplicate_object_hook::instance()->hook_.original()(SourceObject, RootObject, DestOuter, DestName, FlagMask, DestClass, bMigrateArchetypes);
+    return instance()->hook_.original()(SourceObject, RootObject, DestOuter, DestName, FlagMask, DestClass, bMigrateArchetypes);
 }
