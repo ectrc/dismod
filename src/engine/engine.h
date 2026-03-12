@@ -17,7 +17,7 @@ namespace engine {
   template<typename T>
   auto ConstructObject(UObject* outer = nullptr, FName name = "", DWORD object_flags = 0, UObject* template_ = nullptr, void* error = nullptr, UObject* sub_object_root = nullptr, void* graph = nullptr) -> T* {
     static_assert(std::is_base_of<UObject, T>::value, "T must be a subclass of UObject");
-    return static_cast<T*>(UObject_StaticConstructObject_hook::instance()->hook_.original()(T::StaticClass(), outer, name, object_flags, template_, error, sub_object_root, graph));
+    return static_cast<T*>(UObject_StaticConstructObject_hook::instance()->hook_.original()(T::StaticClass(), outer, name, object_flags, template_, error, sub_object_root, graph, 0, 0));
   }
 
   template<typename T>

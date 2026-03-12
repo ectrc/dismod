@@ -7,7 +7,7 @@ auto __thiscall UObject_ProcessEvent_hook::trampoline(UObject* object, UFunction
   if (object == nullptr || function == nullptr) return;
 
 #if LOG_PE
-  LOG("{}->ProcessEvent({})", object->GetName(), function->GetFullName());
+  LOG("{}->ProcessEvent({})", object->GetName(), function->GetName());
 #endif
 
   return instance()->hook_.original()(object, function, params, result);

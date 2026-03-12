@@ -4,7 +4,7 @@
 #include "hook.h"
 #include <sdk.hpp>
 
-#define LOG_PE 0
+#define LOG_PE 1
 
 DEFINE_HOOK(
     UObject_ProcessEvent,

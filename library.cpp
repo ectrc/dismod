@@ -22,7 +22,19 @@
 auto __stdcall thread(void* module) -> void {
   CLEAR_CONSOLE();
   LOG("Welcome!");
-  AppIsSteamEnabled_hook::instance()->hook_.enable();
+
+  UOnlineSubsystemSteamworks_IsEnabled_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_WriteFileToRemoteStorage_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_ReadProfileSettings_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_WriteProfileSettings_hook::instance()->hook_.enable();
+  UOnlineProfileSettings_SetToDefaults_hook::instance()->hook_.enable();
+
+  UOnlineSubsystemSteamworks_Unknown_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_Unknown2_hook::instance()->hook_.enable();
+
+
+  Sleep(6000);
 
   // const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
   // gobjects = reinterpret_cast<TArray<UObject*>*>(base + 0x1023630);
@@ -48,7 +60,7 @@ auto __stdcall thread(void* module) -> void {
     // UObject_StaticDuplicateObject_hook::instance()->hook_.enable();
     // UObject_StaticFindObject_hook::instance()->hook_.enable();
     // UDisTweaksBase_SpawnActor_hook::instance()->hook_.enable();
-    //
+
     // // locomotion hooks
     // FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.enable();
     // FArkComponentLocomotion_MovePawn_hook::instance()->hook_.enable();
