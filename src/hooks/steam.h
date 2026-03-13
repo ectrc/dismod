@@ -2,6 +2,15 @@
 #define DISMOD_STEAM_H
 
 #include "hook.h"
+#include "sdk.hpp"
+#include "engine/filesystem.h"
+
+#include <regex>
+#include <string>
+#include <regex>
+#include <locale>
+#include <codecvt>
+
 
 DEFINE_HOOK_C(
     UOnlineSubsystemSteamworks_IsEnabled,
@@ -30,22 +39,6 @@ DEFINE_HOOK(
 inline auto __thiscall UOnlineSubsystemSteamworks_WriteFileToRemoteStorage_hook::trampoline(UOnlineSubsystemSteamworks* system, const FString *Filename, const void *Data, int Len) -> bool {
     LOG("UOnlineSubsystemSteamworks::WriteFileToRemoteStorage(), FileName = {}", Filename->ToString().c_str());
     return false;
-}
-
-
-
-DEFINE_HOOK(
-    UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage,
-    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 89 75 ? 83 05",
-    TArray<FString>*, UOnlineSubsystemSteamworks* system
-);
-
-inline auto __thiscall UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage_hook::trampoline(UOnlineSubsystemSteamworks* system) -> TArray<FString>* {
-    LOG("UOnlineSubsystemSteamworks::EnumerateFilesOnRemoteStorage() return_to={}", _ReturnAddress());
-    const auto Array = new TArray<FString>{};
-    const auto ForeverFString = new FString(L"profile.bin");
-    Array->push_back(*ForeverFString);
-    return Array;
 }
 
 DEFINE_HOOK(
@@ -84,13 +77,20 @@ inline auto __thiscall UOnlineSubsystemSteamworks_ReadProfileSettings_hook::tram
     UOnlineProfileSettings_SetToDefaults_hook::trampoline(ProfileSettings);
     UOnlineSubsystemSteamworks_WriteProfileSettings_hook::trampoline(system, LocalUserNum, ProfileSettings);
 
-    // const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
-    // const auto engine = *reinterpret_cast<UDishonoredEngine **>(base + 0x104721C);
-    // const auto gengine_vtable = (void**)(engine->VfTableObject.Dummy);
-    // const auto pointer_to_func = gengine_vtable[0x52];
-    // LOG("that func uh {}", *(void**)(system->VfTableObject.Dummy + 0x170));
-
     return true;
+}
+
+DEFINE_HOOK(
+    UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 33 DB 89 5D ? 8B 75 ? ? ? 89 5E",
+    TArray<FString>*, UOnlineSubsystemSteamworks *system
+);
+
+inline auto __thiscall UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage_hook::trampoline(UOnlineSubsystemSteamworks *system) -> TArray<FString>* {
+    LOG("UOnlineSubsystemSteamworks::EnumerateFilesOnRemoteStorage() return_to={}", _ReturnAddress());
+    const auto result = instance()->hook_.original()(system);
+    if (!result) return new TArray<FString>();
+    return result;
 }
 
 DEFINE_HOOK(
@@ -104,27 +104,102 @@ inline auto __thiscall FDisAsyncSaveGameDeleter_DoWork_hook::trampoline(void* th
 }
 
 DEFINE_HOOK(
-    FDisAsyncSaveGameLister_DoWork,
+    FDisAsyncSaveGameSaver_DoWork,
     "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 ? 53 56 57 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 8D 85",
-    void, uintptr_t system
+    void, uintptr_t thread
 );
 
-#include "engine/filesystem.h"
-
-inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(uintptr_t thread) -> void {
-    LOG("FDisAsyncSaveGameLister::DoWork() return_to={}", _ReturnAddress());
+inline auto __thiscall FDisAsyncSaveGameSaver_DoWork_hook::trampoline(uintptr_t thread) -> void {
+    LOG("FDisAsyncSaveGameSaver::DoWork() return_to={}", _ReturnAddress());
 
     const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
-
     const auto get_filename = reinterpret_cast<FString*(__thiscall*)(FString*, FString*)>(base + 0x000542D0);
     const auto file_name = get_filename(reinterpret_cast<FString *>(thread + 12), new FString());
-    LOG("file name {}", file_name->ToString().c_str());
 
     typedef struct file_description { void* data; int len;} file_description;
     const auto file_data = *reinterpret_cast<file_description**>(thread + 24);
-    LOG("file_data_len={} size_of(data)={}", file_data->len, sizeof(file_data->data));
 
-    FileSystem::WriteFile(file_name->c_str(), file_data->data, file_data->len);
+    const auto resolved_file_name = std::wstring(L"./LocalFiles/") + file_name->ToWideString();
+    FileSystem::WriteFile(resolved_file_name.c_str(), file_data->data, file_data->len);
+
+    LOG(" wrote > file_name={} file_data_len={}", file_name->ToString().c_str(), file_data->len);
+}
+
+#pragma pack(push, 1)
+struct FDisSaveGame {
+    int m_Slot;
+    __int64 m_Time;
+    int m_MissionIndex;
+    FString m_MapName;
+    unsigned int m_bIsOwner;
+};
+#pragma pack(pop)
+static_assert(sizeof(FDisSaveGame) == 0x20, "FDisSaveGame must be 0x20 bytes");
+
+struct FDisAsyncSaveGameLister
+{
+    void** VTable;
+    void* DoneEvent;
+    FThreadSafeCounter* WorkCompletionCounter;
+    __int64 hi;
+    TArray<FDisSaveGame> m_SaveGames;
+    long double m_fStartTime;
+    long double m_fEndTime;
+};
+
+DEFINE_HOOK(
+    FDisAsyncSaveGameLister_DoWork,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 89 75 ? 83 05",
+    void, FDisAsyncSaveGameLister* thread
+);
+
+inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(FDisAsyncSaveGameLister* thread) -> void {
+    LOG("FDisAsyncSaveGameLister::DoWork() return_to={}", _ReturnAddress());
+    thread->m_SaveGames.clear();
+
+    const auto files = FileSystem::EnumerateFiles(L"./LocalFiles");
+
+    for (size_t start = 0; start < files.size(); start++) {
+        const auto& file_name = files[start];
+
+        const auto file_path = FString{file_name.c_str()};
+        const auto resolved_path = std::wstring(L"./LocalFiles/") + file_name;
+        const auto file_data = FileSystem::ReadFile(resolved_path.c_str());
+
+        auto split_around_dash = [](const char* str) -> std::pair<std::string, std::string> {
+            const std::regex re(R"((.*?)\s-\s(.*))");
+            const std::string s(str);
+            if (std::smatch match; std::regex_match(s, match, re) && match.size() > 2) {
+                return { match[1].str(), match[2].str() };
+            }
+            return { "", "" };
+        };
+        const char* read_file_name = reinterpret_cast<const char*>(file_data.data() + 0xC);
+        const auto dash_pair = split_around_dash(read_file_name);
+
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        const auto wide_map_name = converter.from_bytes(dash_pair.second);
+
+        LOG(" read > file_name={} file_data_len={})", file_path.ToString().c_str(), file_data.size());
+
+        FDisSaveGame* save = &thread->m_SaveGames[static_cast<int32_t>(thread->m_SaveGames.add_zeroed(1))];
+        save->m_Slot = thread->m_SaveGames.size() + 4;
+        save->m_bIsOwner = 1;
+        save->m_Time = FileSystem::GetFileTimestamp(resolved_path.c_str());
+        save->m_MapName.assign(wide_map_name.c_str());
+        save->m_MissionIndex = std::atoi(dash_pair.first.c_str());
+    }
+
+    // instance()->hook_.original()(thread);
+
+    // const auto x = *reinterpret_cast<TArray<FDisSaveGame>*>((uintptr_t)thread + 0x18);
+    // const auto x = thread->m_SaveGames;
+    // LOG("x len {}", x.size());
+    // LOG("x max {}", x.capacity());
+    // for (size_t start = 0; start < x.size(); start++) {
+    //     auto found = x[start];
+    //     LOG(" > slot={} mission_index={} name={}", found.m_Slot, found.m_MissionIndex, found.m_MapName.ToString().c_str());
+    // }
 }
 
 #endif

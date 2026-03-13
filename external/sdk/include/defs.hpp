@@ -530,6 +530,25 @@ public:
 		return std::vector<InElementType>(ArrayData, ArrayData + ArrayCount);
 	}
 
+	size_t add_zeroed(size_t num = 1)
+    {
+        if (num <= 0) return ArrayCount;
+
+        int firstNewIndex = ArrayCount;
+        if (ArrayCount + num > ArrayMax)
+        {
+            ReAllocate(sizeof(ElementType) * (ArrayCount + num));
+        }
+
+        for (int i = 0; i < num; i++)
+        {
+            new(&ArrayData[ArrayCount]) ElementType();
+            ArrayCount++;
+        }
+
+        return firstNewIndex;
+    }
+
 private:
 	void ReAllocate(int32_t newArrayMax)
 	{
@@ -1083,11 +1102,22 @@ public:
 	~FString() {}
 
 public:
-	FString& assign(ElementPointer other)
+	FString& assign(const ElementPointer other)
 	{
-		ArrayCount = (other ? (wcslen(other) + 1) : 0);
-		ArrayMax = ArrayCount;
-		ArrayData = (ArrayCount > 0 ? other : nullptr);
+		if (other) {
+			ArrayCount = wcslen(other) + 1;
+			ArrayMax = ArrayCount;
+
+			ArrayData = new wchar_t[ArrayCount];
+
+			std::wmemcpy(static_cast<wchar_t *>((void*)ArrayData), other, ArrayCount);
+		} else {
+			// Empty string
+			ArrayCount = 0;
+			ArrayMax = 0;
+			ArrayData = nullptr;
+		}
+
 		return *this;
 	}
 

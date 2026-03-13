@@ -2,6 +2,8 @@
 #define DISMOD_FILESYSTEM_H
 
 #include <cstddef>
+#include <string>
+#include <vector>
 
 class FileSystem
 {
@@ -12,10 +14,10 @@ public:
         int Len
     );
 
-    static int ReadFile(
-        const wchar_t* Filename,
-        void** OutData
-    );
+    static std::vector<std::byte> ReadFile(const wchar_t* Filename);
+    static int64_t GetFileTimestamp(const wchar_t* Filename);
+
+    static std::vector<std::wstring> EnumerateFiles(const wchar_t* FolderPath);
 };
 
 #endif

@@ -25,14 +25,14 @@ auto __stdcall thread(void* module) -> void {
 
   UOnlineSubsystemSteamworks_IsEnabled_hook::instance()->hook_.enable();
   UOnlineSubsystemSteamworks_WriteFileToRemoteStorage_hook::instance()->hook_.enable();
-  UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage_hook::instance()->hook_.enable();
-  UOnlineSubsystemSteamworks_ReadProfileSettings_hook::instance()->hook_.enable();
   UOnlineSubsystemSteamworks_WriteProfileSettings_hook::instance()->hook_.enable();
   UOnlineProfileSettings_SetToDefaults_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_ReadProfileSettings_hook::instance()->hook_.enable();
+  UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage_hook::instance()->hook_.enable();
 
   FDisAsyncSaveGameDeleter_DoWork_hook::instance()->hook_.enable();
   FDisAsyncSaveGameLister_DoWork_hook::instance()->hook_.enable();
-
+  FDisAsyncSaveGameSaver_DoWork_hook::instance()->hook_.enable();
 
   Sleep(6000);
 
