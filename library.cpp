@@ -30,8 +30,8 @@ auto __stdcall thread(void* module) -> void {
   UOnlineSubsystemSteamworks_WriteProfileSettings_hook::instance()->hook_.enable();
   UOnlineProfileSettings_SetToDefaults_hook::instance()->hook_.enable();
 
-  UOnlineSubsystemSteamworks_Unknown_hook::instance()->hook_.enable();
-  UOnlineSubsystemSteamworks_Unknown2_hook::instance()->hook_.enable();
+  FDisAsyncSaveGameDeleter_DoWork_hook::instance()->hook_.enable();
+  FDisAsyncSaveGameLister_DoWork_hook::instance()->hook_.enable();
 
 
   Sleep(6000);
@@ -97,38 +97,38 @@ auto __stdcall thread(void* module) -> void {
 void __stdcall unload(void* module) {
   Sleep(2000);
 
-  UObject_ProcessEvent_hook::instance()->hook_.disable();
-  UObject_LoadPackage_hook::instance()->hook_.disable();
-  UObject_LoadPackageAsync_hook::instance()->hook_.disable();
-  UObject_StaticLoadObject_hook::instance()->hook_.disable();
-  UObject_StaticConstructObject_hook::instance()->hook_.disable();
-  UObject_StaticDuplicateObject_hook::instance()->hook_.disable();
-  UObject_StaticFindObject_hook::instance()->hook_.disable();
-  UDisTweaksBase_SpawnActor_hook::instance()->hook_.disable();
+  // UObject_ProcessEvent_hook::instance()->hook_.disable();
+  // UObject_LoadPackage_hook::instance()->hook_.disable();
+  // UObject_LoadPackageAsync_hook::instance()->hook_.disable();
+  // UObject_StaticLoadObject_hook::instance()->hook_.disable();
+  // UObject_StaticConstructObject_hook::instance()->hook_.disable();
+  // UObject_StaticDuplicateObject_hook::instance()->hook_.disable();
+  // UObject_StaticFindObject_hook::instance()->hook_.disable();
+  // UDisTweaksBase_SpawnActor_hook::instance()->hook_.disable();
+  //
+  // FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.disable();
+  // FArkComponentLocomotion_MovePawn_hook::instance()->hook_.disable();
+  // FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.disable();
+  // FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.disable();
+  // FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
+  //
+  // UWorld_SpawnActor_hook::instance()->hook_.disable();
+  // UWorld_Tick_hook::instance()->hook_.disable();
+  // UWorld_SingleLineCheck_hook::instance()->hook_.disable();
+  // FRotator_Vector_hook::instance()->hook_.disable();
+  // APlayerController_GetPlayerViewPoint_hook::instance()->hook_.disable();
+  //
+  // FName_ToString_hook::instance()->hook_.disable();
+  // UDishonoredEngine_DisSave_hook::instance()->hook_.disable();
+  //
+  // UDishonoredAIBrain_InitBrain_hook::instance()->hook_.disable();
+  // UDishonoredAIBrain_TickBrain_hook::instance()->hook_.disable();
+  // ADishonoredNPCController_InitNPC_hook::instance()->hook_.disable();
+  //
+  // end_scene_hook::instance()->hook_.disable();
+  // process_input_hook::instance()->hook_.disable();
 
-  FArkComponentLocomotion_SendTouchAndBumpEvents_hook::instance()->hook_.disable();
-  FArkComponentLocomotion_MovePawn_hook::instance()->hook_.disable();
-  FArkComponentLookAt_StartLookAtLocation_hook::instance()->hook_.disable();
-  FArkComponentLookAt_StartLookAtActor_hook::instance()->hook_.disable();
-  FDisNPCRotationIntent_SetTargetRotation_hook::instance()->hook_.enable();
-
-  UWorld_SpawnActor_hook::instance()->hook_.disable();
-  UWorld_Tick_hook::instance()->hook_.disable();
-  UWorld_SingleLineCheck_hook::instance()->hook_.disable();
-  FRotator_Vector_hook::instance()->hook_.disable();
-  APlayerController_GetPlayerViewPoint_hook::instance()->hook_.disable();
-
-  FName_ToString_hook::instance()->hook_.disable();
-  UDishonoredEngine_DisSave_hook::instance()->hook_.disable();
-
-  UDishonoredAIBrain_InitBrain_hook::instance()->hook_.disable();
-  UDishonoredAIBrain_TickBrain_hook::instance()->hook_.disable();
-  ADishonoredNPCController_InitNPC_hook::instance()->hook_.disable();
-
-  end_scene_hook::instance()->hook_.disable();
-  process_input_hook::instance()->hook_.disable();
-
-  render::cleanup();
+  // render::cleanup();
   LOG("Unloaded!");
 }
 

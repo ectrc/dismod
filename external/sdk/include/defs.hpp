@@ -1117,6 +1117,11 @@ public:
 		return ArrayData;
 	}
 
+	ElementPointer Data()
+	{
+		return ArrayData;
+	}
+
 	bool empty() const
 	{
 		if (ArrayData)

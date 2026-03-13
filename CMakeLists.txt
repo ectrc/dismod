@@ -52,6 +52,7 @@ add_library(dismod SHARED
 
         src/engine/engine.cpp
         src/engine/state.cpp
+        src/engine/filesystem.cpp
 
         src/mods/spawn.cpp
         src/mods/world.cpp

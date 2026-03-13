@@ -15,7 +15,7 @@ inline auto __cdecl UOnlineSubsystemSteamworks_IsEnabled_hook::trampoline() -> b
 
     const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
-    *reinterpret_cast<void**>(base + 0x0105B15C) = nullptr;
+    // *reinterpret_cast<void**>(base + 0x0105B15C) = nullptr;
     LOG("GSteamRemoteStorage {}", reinterpret_cast<void*>(base + 0x0105B15C));
 
     return false;
@@ -32,16 +32,7 @@ inline auto __thiscall UOnlineSubsystemSteamworks_WriteFileToRemoteStorage_hook:
     return false;
 }
 
-DEFINE_HOOK(
-    UOnlineSubsystemSteamworks_Unknown,
-    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 68",
-    void, UOnlineSubsystemSteamworks* system
-);
 
-inline auto __thiscall UOnlineSubsystemSteamworks_Unknown_hook::trampoline(UOnlineSubsystemSteamworks* system) -> void {
-    LOG("UOnlineSubsystemSteamworks::Unknown()");
-    return;
-}
 
 DEFINE_HOOK(
     UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage,
@@ -51,18 +42,10 @@ DEFINE_HOOK(
 
 inline auto __thiscall UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage_hook::trampoline(UOnlineSubsystemSteamworks* system) -> TArray<FString>* {
     LOG("UOnlineSubsystemSteamworks::EnumerateFilesOnRemoteStorage() return_to={}", _ReturnAddress());
-    return new TArray<FString>();
-}
-
-DEFINE_HOOK(
-    UOnlineSubsystemSteamworks_Unknown2,
-    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 ? 53 56 57 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 8D 85",
-    void, UOnlineSubsystemSteamworks* system
-);
-
-inline auto __thiscall UOnlineSubsystemSteamworks_Unknown2_hook::trampoline(UOnlineSubsystemSteamworks* system) -> void {
-    LOG("UOnlineSubsystemSteamworks::Unknown2()");
-
+    const auto Array = new TArray<FString>{};
+    const auto ForeverFString = new FString(L"profile.bin");
+    Array->push_back(*ForeverFString);
+    return Array;
 }
 
 DEFINE_HOOK(
@@ -101,9 +84,47 @@ inline auto __thiscall UOnlineSubsystemSteamworks_ReadProfileSettings_hook::tram
     UOnlineProfileSettings_SetToDefaults_hook::trampoline(ProfileSettings);
     UOnlineSubsystemSteamworks_WriteProfileSettings_hook::trampoline(system, LocalUserNum, ProfileSettings);
 
+    // const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+    // const auto engine = *reinterpret_cast<UDishonoredEngine **>(base + 0x104721C);
+    // const auto gengine_vtable = (void**)(engine->VfTableObject.Dummy);
+    // const auto pointer_to_func = gengine_vtable[0x52];
+    // LOG("that func uh {}", *(void**)(system->VfTableObject.Dummy + 0x170));
+
     return true;
 }
 
+DEFINE_HOOK(
+    FDisAsyncSaveGameDeleter_DoWork,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 68",
+    void, void* system
+);
 
+inline auto __thiscall FDisAsyncSaveGameDeleter_DoWork_hook::trampoline(void* thread) -> void {
+    LOG("FDisAsyncSaveGameDeleter::DoWork() return_to={}", _ReturnAddress());
+}
+
+DEFINE_HOOK(
+    FDisAsyncSaveGameLister_DoWork,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 ? 53 56 57 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 8D 85",
+    void, uintptr_t system
+);
+
+#include "engine/filesystem.h"
+
+inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(uintptr_t thread) -> void {
+    LOG("FDisAsyncSaveGameLister::DoWork() return_to={}", _ReturnAddress());
+
+    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+
+    const auto get_filename = reinterpret_cast<FString*(__thiscall*)(FString*, FString*)>(base + 0x000542D0);
+    const auto file_name = get_filename(reinterpret_cast<FString *>(thread + 12), new FString());
+    LOG("file name {}", file_name->ToString().c_str());
+
+    typedef struct file_description { void* data; int len;} file_description;
+    const auto file_data = *reinterpret_cast<file_description**>(thread + 24);
+    LOG("file_data_len={} size_of(data)={}", file_data->len, sizeof(file_data->data));
+
+    FileSystem::WriteFile(file_name->c_str(), file_data->data, file_data->len);
+}
 
 #endif
