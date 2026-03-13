@@ -3,6 +3,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include "logger.h"
+
 bool FileSystem::WriteFile(const wchar_t* Filename, const void* Data, int Len) {
     if (!Filename || !Data || Len <= 0) return false;
 
@@ -31,8 +33,10 @@ std::vector<std::byte> FileSystem::ReadFile(const wchar_t* Filename) {
     {
         std::filesystem::path path(Filename);
         std::ifstream file(path, std::ios::binary | std::ios::ate);
-        if (!file.is_open())
+        if (!file.is_open()) {
+            LOG("file is not open");
             return buffer;
+        }
 
         auto size = file.tellg();
         if (size <= 0) return buffer;
@@ -43,6 +47,7 @@ std::vector<std::byte> FileSystem::ReadFile(const wchar_t* Filename) {
     }
     catch (...)
     {
+        LOG("failed to read bugger");
         buffer.clear();
     }
 

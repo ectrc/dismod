@@ -183,7 +183,7 @@ inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(FDisAsync
         LOG(" read > file_name={} file_data_len={})", file_path.ToString().c_str(), file_data.size());
 
         FDisSaveGame* save = &thread->m_SaveGames[static_cast<int32_t>(thread->m_SaveGames.add_zeroed(1))];
-        save->m_Slot = thread->m_SaveGames.size() + 4;
+        save->m_Slot = (thread->m_SaveGames.size() * 4) + 4;
         save->m_bIsOwner = 1;
         save->m_Time = FileSystem::GetFileTimestamp(resolved_path.c_str());
         save->m_MapName.assign(wide_map_name.c_str());
@@ -200,6 +200,61 @@ inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(FDisAsync
     //     auto found = x[start];
     //     LOG(" > slot={} mission_index={} name={}", found.m_Slot, found.m_MissionIndex, found.m_MapName.ToString().c_str());
     // }
+}
+
+// AsyncGameLoader crash log
+
+// 0x0045A372 (maybe_load_level) <- deref null ptr on steam
+// 0x0045B117 (FileManager::CreateFileReader)
+// 0x00A14D3A (DisAsyncSaveGameLoader::DoWork)
+
+DEFINE_HOOK(
+    maybe_load_level,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F9 89 7D ? 8B 45 ? 50",
+    int, void** me, wchar_t* file_path
+);
+
+inline auto __thiscall maybe_load_level_hook::trampoline(void** me, wchar_t* file_path) -> int {
+    const auto widened = std::wstring(file_path);
+    const auto pos = widened.find_last_of(L"\\/");
+    const std::wstring file_name = (pos == std::wstring::npos)
+        ? widened
+        : widened.substr(pos + 1);
+
+    auto get_mission_number = [](const std::wstring& name) -> int {
+        static const std::wregex re(LR"(.*?(\d+)\.sav$)", std::regex::icase);
+        if (std::wsmatch match; std::regex_match(name, match, re) && match.size() > 1) {
+            return std::stoi(match[1].str());
+        }
+        return -1;
+    };
+
+    const auto all_files = FileSystem::EnumerateFiles(L"./LocalFiles");
+    LOG("   file_name -> {}", (new FString(file_name.c_str()))->ToString().c_str());
+    LOG("   get_mission_number(file_name) -> {}", get_mission_number(file_name));
+    LOG("   all_files.size() -> {}", all_files.size());
+
+    if (get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0) {
+        LOG("get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0");
+        return 0;
+    }
+
+    const auto& chosen_file_name = all_files[get_mission_number(file_name) - 1];
+    const auto resolved_path = std::wstring(L"./LocalFiles/") + chosen_file_name;
+    const auto file_data = FileSystem::ReadFile(resolved_path.c_str());
+
+    LOG("file_name={} file_bytes={}",
+        (new FString(resolved_path.c_str()))->ToString().c_str(),
+        file_data.size());
+
+    if (!file_data.empty()) {
+        LOG("copying file bytes")
+        *(me+36) = new char[file_data.size()];
+        std::memcpy(*(me+36), reinterpret_cast<const char*>(file_data.data()), file_data.size());
+        return 1;
+    }
+
+    return 0;
 }
 
 #endif
