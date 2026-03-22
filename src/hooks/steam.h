@@ -11,6 +11,99 @@
 #include <locale>
 #include <codecvt>
 
+struct RemoteStorageImpl {
+public:
+    virtual bool __thiscall FileWrite(const char* file_name, const void* bytes, int) {
+        LOG("RemoteStorageImpl::FileWrite() file_name={}", file_name);
+        return true;
+    };
+
+    virtual int __thiscall FileRead(const char* file_name, void* data_out, int to_read) {
+        LOG("RemoteStorageImpl::FileRead file_name={} to_read={}", file_name, to_read);
+
+        const auto file_data = FileSystem::ReadFile(std::string("./LocalFiles/") + file_name);
+        std::memcpy(data_out, file_data.data(), file_data.size());
+
+        return file_data.size();
+    };
+
+    virtual bool __thiscall FileForget(const char* file_name) {
+        LOG("RemoteStorageImpl::FileForget() file_name={}", file_name);
+        return true;
+    };
+    virtual bool __thiscall FileDelete(const char* file_name) {
+        LOG("RemoteStorageImpl::FileDelete() file_name={}", file_name);
+        return true;
+    };
+    virtual uint64_t __thiscall FileShare(const char* file_name) {
+        LOG("RemoteStorageImpl::FileShare() file_name={}", file_name);
+        return true;
+    };
+
+    virtual bool __thiscall SetSyncPlatforms(const char* file_name, uint8_t) {
+        LOG("RemoteStorageImpl::SetSyncPlatforms() file_name={}", file_name);
+        return true;
+    };
+
+    virtual bool __thiscall FileExists(const char* file_name) {
+        LOG("RemoteStorageImpl::FileExists() file_name={}", file_name);
+        return FileSystem::Exists(std::string("./LocalFiles/") + file_name);
+    };
+    virtual bool __thiscall FilePersisted(const char* file_name) {
+        LOG("RemoteStorageImpl::FilePersisted() file_name={}", file_name);
+        return true;
+    };
+
+    virtual int __thiscall GetFileSize(const char* file_name) {
+        LOG("RemoteStorageImpl::GetFileSize file_name={}", file_name);
+        if (!FileSystem::Exists(std::string("./LocalFiles/") + file_name)) return 0;
+
+        const auto file_data = FileSystem::ReadFile(std::string("./LocalFiles/") + file_name);
+        return file_data.size();
+    };
+
+    virtual int64_t __thiscall GetFileTimestamp(const char* file_name) {
+        LOG("RemoteStorageImpl::GetFileTimestamp file_name={}", file_name);
+        return FileSystem::GetFileTimestamp(std::string("./LocalFiles/") + file_name);
+    };
+
+    virtual uint8_t __thiscall GetSyncPlatforms(const char* file_name) {
+        LOG("RemoteStorageImpl::GetSyncPlatforms file_name={}", file_name);
+        return 1; // ERemoteStoragePlatformWindows
+    };
+
+    virtual int __thiscall GetFileCount() {
+        LOG("RemoteStorageImpl::GetFileCount");
+        const auto files = FileSystem::EnumerateFiles(L"./LocalFiles");
+        return files.size();
+    };
+
+    virtual const char* __thiscall GetFileNameAndSize(int index, int* out_size) {
+        static std::string filename;
+
+        if (const auto files = FileSystem::EnumerateFiles(L"./LocalFiles");
+            index >= 0 && index < files.size()) {
+
+            const auto file = FileSystem::ReadFile(
+                std::string("./LocalFiles/") + files[index].string()
+            );
+
+            if (out_size) *out_size = file.size();
+
+            filename = files[index].string();
+            return filename.c_str();
+        }
+
+        return "";
+    }
+
+    virtual bool __thiscall GetQuota(int* out_total_bytes, int* out_available_bytes) {
+        LOG("RemoteStorageImpl::GetQuota");
+        if (out_total_bytes) *out_total_bytes = INT_MAX;
+        if (out_available_bytes) *out_available_bytes = INT_MAX;
+        return true;
+    };
+};
 
 DEFINE_HOOK_C(
     UOnlineSubsystemSteamworks_IsEnabled,
@@ -21,13 +114,15 @@ DEFINE_HOOK_C(
 inline auto __cdecl UOnlineSubsystemSteamworks_IsEnabled_hook::trampoline() -> bool {
     const auto result = instance()->hook_.original();
     LOG("UOnlineSubsystemSteamworks::IsEnabled() == {}", result ? "true" : "false");
-
-    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
-
     // *reinterpret_cast<void**>(base + 0x0105B15C) = nullptr;
-    LOG("GSteamRemoteStorage {}", reinterpret_cast<void*>(base + 0x0105B15C));
+    // LOG("GSteamRemoteStorage {}", reinterpret_cast<void*>(base + 0x0105B15C));
 
-    return false;
+
+    auto* RemoteStorage = new RemoteStorageImpl();
+    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+    *reinterpret_cast<void**>(base + 0x0105B15C) = RemoteStorage;
+
+    return true;
 }
 
 DEFINE_HOOK(
@@ -111,19 +206,51 @@ DEFINE_HOOK(
 
 inline auto __thiscall FDisAsyncSaveGameSaver_DoWork_hook::trampoline(uintptr_t thread) -> void {
     LOG("FDisAsyncSaveGameSaver::DoWork() return_to={}", _ReturnAddress());
+    return instance()->hook_.original()(thread);
 
-    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
-    const auto get_filename = reinterpret_cast<FString*(__thiscall*)(FString*, FString*)>(base + 0x000542D0);
-    const auto file_name = get_filename(reinterpret_cast<FString *>(thread + 12), new FString());
-
-    typedef struct file_description { void* data; int len;} file_description;
-    const auto file_data = *reinterpret_cast<file_description**>(thread + 24);
-
-    const auto resolved_file_name = std::wstring(L"./LocalFiles/") + file_name->ToWideString();
-    FileSystem::WriteFile(resolved_file_name.c_str(), file_data->data, file_data->len);
-
-    LOG(" wrote > file_name={} file_data_len={}", file_name->ToString().c_str(), file_data->len);
+    //
+    // const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+    // const auto get_filename = reinterpret_cast<FString*(__thiscall*)(FString*, FString*)>(base + 0x000542D0);
+    // const auto file_name = get_filename(reinterpret_cast<FString *>(thread + 12), new FString());
+    //
+    // typedef struct file_description { void* data; int len;} file_description;
+    // const auto file_data = *reinterpret_cast<file_description**>(thread + 24);
+    //
+    // const auto resolved_file_name = std::wstring(L"./LocalFiles/") + file_name->ToWideString();
+    // FileSystem::WriteFile(resolved_file_name.c_str(), file_data->data, file_data->len);
+    //
+    // LOG(" wrote > file_name={} file_data_len={}", file_name->ToString().c_str(), file_data->len);
 }
+
+// Welcome!
+// [UOnlineSubsystemSteamworks_IsEnabled] hook placed successfully at 0x9a8840
+// [UOnlineSubsystemSteamworks_WriteProfileSettings] hook placed successfully at 0x9aad00
+// [UOnlineProfileSettings_SetToDefaults] hook placed successfully at 0x8fa4a0
+// [UOnlineSubsystemSteamworks_ReadProfileSettings] hook placed successfully at 0x9ad8f0
+// [UOnlineSubsystemSteamworks_EnumerateFilesOnRemoteStorage] hook placed successfully at 0x9ad210
+// [FDisAsyncSaveGameDeleter_DoWork] hook placed successfully at 0xa01950
+// [FDisAsyncSaveGameLister_DoWork] hook placed successfully at 0xa09020
+// [FDisAsyncSaveGameSaver_DoWork] hook placed successfully at 0x45a5a0
+// [maybe_load_level] hook placed successfully at 0x45a2d0
+// [allocate_Bytes_maybe] hook placed successfully at 0x4277f0
+// UOnlineSubsystemSteamworks::IsEnabled() == true
+// UOnlineSubsystemSteamworks::SetToDefaults(profile=0x17814400) return_to=0x93b8f2
+// UOnlineSubsystemSteamworks::ReadProfileSettings(profile=0x2372bc00) return_to=0x9a441e
+// UOnlineSubsystemSteamworks::SetToDefaults(profile=0x2372bc00) return_to=0x6d284867
+// UOnlineSubsystemSteamworks::WriteProfileSettings(profile=0x2372bc00) return_to=0x6d284877
+// FDisAsyncSaveGameLister::DoWork() return_to=0x40481a
+// RemoteStorageImpl::GetFileCount
+// UOnlineSubsystemSteamworks::ReadProfileSettings(profile=0x2372bc00) return_to=0x9a441e
+// UOnlineSubsystemSteamworks::SetToDefaults(profile=0x2372bc00) return_to=0x6d284867
+// UOnlineSubsystemSteamworks::WriteProfileSettings(profile=0x2372bc00) return_to=0x6d284877
+// UOnlineSubsystemSteamworks::ReadProfileSettings(profile=0x2372bc00) return_to=0x9a441e
+// UOnlineSubsystemSteamworks::SetToDefaults(profile=0x2372bc00) return_to=0x6d284867
+// UOnlineSubsystemSteamworks::WriteProfileSettings(profile=0x2372bc00) return_to=0x6d284877
+// UOnlineSubsystemSteamworks::WriteProfileSettings(profile=0x2372bc00) return_to=0x9a44ab
+// FDisAsyncSaveGameSaver::DoWork() return_to=0x40481a
+// RemoteStorageImpl::GetFileSize file_name=DisAutoSave0.sav
+// file is not open
+
 
 #pragma pack(push, 1)
 struct FDisSaveGame {
@@ -155,152 +282,19 @@ DEFINE_HOOK(
 
 inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(FDisAsyncSaveGameLister* thread) -> void {
     LOG("FDisAsyncSaveGameLister::DoWork() return_to={}", _ReturnAddress());
-    thread->m_SaveGames.clear();
-
-    const auto files = FileSystem::EnumerateFiles(L"./LocalFiles");
-
-    for (size_t start = 0; start < files.size(); start++) {
-        const auto& file_name = files[start];
-
-        const auto file_path = FString{file_name.c_str()};
-        const auto resolved_path = std::wstring(L"./LocalFiles/") + file_name;
-        const auto file_data = FileSystem::ReadFile(resolved_path.c_str());
-
-        auto split_around_dash = [](const char* str) -> std::pair<std::string, std::string> {
-            const std::regex re(R"((.*?)\s-\s(.*))");
-            const std::string s(str);
-            if (std::smatch match; std::regex_match(s, match, re) && match.size() > 2) {
-                return { match[1].str(), match[2].str() };
-            }
-            return { "", "" };
-        };
-        const char* read_file_name = reinterpret_cast<const char*>(file_data.data() + 0xC);
-        const auto dash_pair = split_around_dash(read_file_name);
-
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-        const auto wide_map_name = converter.from_bytes(dash_pair.second);
-
-        LOG(" read > file_name={} file_data_len={})", file_path.ToString().c_str(), file_data.size());
-
-        FDisSaveGame* save = &thread->m_SaveGames[static_cast<int32_t>(thread->m_SaveGames.add_zeroed(1))];
-        save->m_Slot = (thread->m_SaveGames.size() * 4) + 4;
-        save->m_bIsOwner = 1;
-        save->m_Time = FileSystem::GetFileTimestamp(resolved_path.c_str());
-        save->m_MapName.assign(wide_map_name.c_str());
-        save->m_MissionIndex = std::atoi(dash_pair.first.c_str());
-    }
-
-    // instance()->hook_.original()(thread);
-
-    // const auto x = *reinterpret_cast<TArray<FDisSaveGame>*>((uintptr_t)thread + 0x18);
-    // const auto x = thread->m_SaveGames;
-    // LOG("x len {}", x.size());
-    // LOG("x max {}", x.capacity());
-    // for (size_t start = 0; start < x.size(); start++) {
-    //     auto found = x[start];
-    //     LOG(" > slot={} mission_index={} name={}", found.m_Slot, found.m_MissionIndex, found.m_MapName.ToString().c_str());
-    // }
-}
-
-// AsyncGameLoader crash log
-
-// 0x0045A372 (SteamFileManaer::CreateFileReader) <- deref null ptr on steam
-// 0x0045B117 (FileManager::CreateFileReader)
-// 0x00A14D3A (DisAsyncSaveGameLoader::DoWork)
-
-DEFINE_HOOK(
-    allocate_Bytes_maybe,
-    "55 8B EC 8B 45 ? 53 56 8B F1 8B 5E ? 57 8B 7E ? 03 C7 8B CB 3B C1 89 46 ? 7E ? 6A ? 51 50 E8 ? ? ? ? ? ? 83 C4 ? 89 46 ? 85 C9 75 ? 85 C0 74 ? 6A ? 50 53 51 E8 ? ? ? ? 83 C4 ? ? ? 8B C7",
-    int, void* me, int a2
-);
-
-inline auto __thiscall allocate_Bytes_maybe_hook::trampoline(void* me, int length) -> int {
-    return instance()->hook_.original()(me, length);
+    return instance()->hook_.original()(thread);
 }
 
 DEFINE_HOOK(
-    maybe_load_level,
-    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? 53 56 57 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F9 89 7D ? 8B 45 ? 50",
-    int, void** me, wchar_t* file_path
+    get_base_filename,
+    "55 8B EC 6A ? 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC ? 53 56 A1 ? ? ? ? 33 C5 50 8D 45 ? 64 A3 ? ? ? ? 8B F1 83 7D ? 00",
+    FString*, FString* me, FString* result, bool remove_path
 );
 
-struct RemoteStorageImpl {
-    void** vtable;
-
-public:
-    virtual __thiscall bool FileWrite(const char*, const void*, int);
-    virtual int __thiscall FileRead(const char* file_name, void* data_out, int to_read) {
-        LOG("RemoteStorageImpl::FileRead file_name={} to_read={}", file_name, to_read);
-
-
-        return 0;
-    };
-    virtual bool __thiscall FileForget(const char*);
-    virtual bool __thiscall FileDelete(const char*);
-    virtual unsigned __int64 __thiscall FileShare(const char*);
-    virtual bool __thiscall SetSyncPlatforms(const char*, uint8_t);
-    virtual bool __thiscall FileExists(const char*) { return true; };
-    virtual bool __thiscall FilePersisted(const char*);
-
-    virtual int __thiscall GetFileSize(const char* file_name) {
-        LOG("RemoteStorageImpl::GetFileSize file_name={}", file_name);
-
-        return 0;
-    };
-};
-
-inline auto __thiscall maybe_load_level_hook::trampoline(void** me, wchar_t* file_path) -> int {
-    RemoteStorageImpl RemoteStorage = RemoteStorageImpl{};
-
-    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
-    *reinterpret_cast<void**>(base + 0x0105B15C) = &RemoteStorage;
-
-    // const auto widened = std::wstring(file_path);
-    // const auto pos = widened.find_last_of(L"\\/");
-    // const std::wstring file_name = (pos == std::wstring::npos)
-    //     ? widened
-    //     : widened.substr(pos + 1);
-    //
-    // auto get_mission_number = [](const std::wstring& name) -> int {
-    //     static const std::wregex re(LR"(.*?(\d+)\.sav$)", std::regex::icase);
-    //     if (std::wsmatch match; std::regex_match(name, match, re) && match.size() > 1) {
-    //         return std::stoi(match[1].str());
-    //     }
-    //     return -1;
-    // };
-    //
-    // const auto all_files = FileSystem::EnumerateFiles(L"./LocalFiles");
-    // LOG("   file_name -> {}", (new FString(file_name.c_str()))->ToString().c_str());
-    // LOG("   get_mission_number(file_name) -> {}", get_mission_number(file_name));
-    // LOG("   all_files.size() -> {}", all_files.size());
-    //
-    // if (get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0) {
-    //     LOG("get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0");
-    //     return 0;
-    // }
-    //
-    // const auto& chosen_file_name = all_files[get_mission_number(file_name) - 1];
-    // const auto resolved_path = std::wstring(L"./LocalFiles/") + chosen_file_name;
-    // const auto file_data = FileSystem::ReadFile(resolved_path.c_str());
-    //
-    // LOG("file_name={} file_bytes={}",
-    //     (new FString(resolved_path.c_str()))->ToString().c_str(),
-    //     file_data.size());
-    // if (file_data.empty()) return 0;
-    //     // auto Data = *reinterpret_cast<TArray<char>*>(me+36);
-    //     // Data.ReAllocate((int32_t)((file_data.size() + 1) * sizeof(char)));
-    //
-    // // auto Data = *reinterpret_cast<TArray<char>*>(me+36);
-    // // LOG("Result Array data={} len={} max={}", Data.data(), Data.size(), Data.capacity());
-    //
-    // const auto bytes = reinterpret_cast<TArray<uint8_t>*>(me + 36);
-    // allocate_Bytes_maybe_hook::instance()->hook_.original()(bytes, file_data.size());
-    // std::memcpy(((void**)bytes)[0], file_data.data(), file_data.size());
-    // me[13] = 0;
-    //
-    // LOG("Wrote bytes into array");
-
-    return 1;
+inline auto __thiscall get_base_filename_hook::trampoline(FString* me, FString* result, bool remove_path) -> FString* {
+    const auto return_result = instance()->hook_.original()(me, result, remove_path);
+    // LOG("GetBaseAddress() from={} to={}", me->ToString().c_str(), result->ToString().c_str());
+    return return_result;
 }
 
 #endif

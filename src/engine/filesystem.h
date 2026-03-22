@@ -4,20 +4,26 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 class FileSystem
 {
 public:
     static bool WriteFile(
-        const wchar_t* Filename,
-        const void* Data,
-        int Len
+        const std::filesystem::path& path,
+        const void* data,
+        size_t len
     );
 
-    static std::vector<std::byte> ReadFile(const wchar_t* Filename);
-    static int64_t GetFileTimestamp(const wchar_t* Filename);
+    static std::vector<std::byte> ReadFile(const std::filesystem::path& path);
 
-    static std::vector<std::wstring> EnumerateFiles(const wchar_t* FolderPath);
+    static int64_t GetFileTimestamp(const std::filesystem::path& path);
+
+    static std::vector<std::filesystem::path> EnumerateFiles(
+        const std::filesystem::path& folder
+    );
+
+    static bool Exists(const std::filesystem::path& path);
 };
 
 #endif

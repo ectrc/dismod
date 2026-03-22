@@ -33,8 +33,8 @@ auto __stdcall thread(void* module) -> void {
   FDisAsyncSaveGameDeleter_DoWork_hook::instance()->hook_.enable();
   FDisAsyncSaveGameLister_DoWork_hook::instance()->hook_.enable();
   FDisAsyncSaveGameSaver_DoWork_hook::instance()->hook_.enable();
-  maybe_load_level_hook::instance()->hook_.enable();
-  allocate_Bytes_maybe_hook::instance()->hook_.enable();
+  get_base_filename_hook::instance()->hook_.enable();
+  // allocate_Bytes_maybe_hook::instance()->hook_.enable();
 
   // Sleep(6000);
 
