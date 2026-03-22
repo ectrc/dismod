@@ -549,7 +549,6 @@ public:
         return firstNewIndex;
     }
 
-private:
 	void ReAllocate(int32_t newArrayMax)
 	{
 		ElementPointer newArrayData = (ElementPointer)::operator new(newArrayMax * sizeof(ElementType));

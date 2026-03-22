@@ -34,8 +34,9 @@ auto __stdcall thread(void* module) -> void {
   FDisAsyncSaveGameLister_DoWork_hook::instance()->hook_.enable();
   FDisAsyncSaveGameSaver_DoWork_hook::instance()->hook_.enable();
   maybe_load_level_hook::instance()->hook_.enable();
+  allocate_Bytes_maybe_hook::instance()->hook_.enable();
 
-  Sleep(6000);
+  // Sleep(6000);
 
   // const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
   // gobjects = reinterpret_cast<TArray<UObject*>*>(base + 0x1023630);
@@ -91,7 +92,7 @@ auto __stdcall thread(void* module) -> void {
   }
 
   // while (!render::render_state.wants_exit.load()) { Sleep(1000); }
-  FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
+  // FreeLibraryAndExitThread(static_cast<HMODULE>(module), 0);
 }
 
 

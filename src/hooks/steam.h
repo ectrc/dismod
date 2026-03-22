@@ -204,9 +204,19 @@ inline auto __thiscall FDisAsyncSaveGameLister_DoWork_hook::trampoline(FDisAsync
 
 // AsyncGameLoader crash log
 
-// 0x0045A372 (maybe_load_level) <- deref null ptr on steam
+// 0x0045A372 (SteamFileManaer::CreateFileReader) <- deref null ptr on steam
 // 0x0045B117 (FileManager::CreateFileReader)
 // 0x00A14D3A (DisAsyncSaveGameLoader::DoWork)
+
+DEFINE_HOOK(
+    allocate_Bytes_maybe,
+    "55 8B EC 8B 45 ? 53 56 8B F1 8B 5E ? 57 8B 7E ? 03 C7 8B CB 3B C1 89 46 ? 7E ? 6A ? 51 50 E8 ? ? ? ? ? ? 83 C4 ? 89 46 ? 85 C9 75 ? 85 C0 74 ? 6A ? 50 53 51 E8 ? ? ? ? 83 C4 ? ? ? 8B C7",
+    int, void* me, int a2
+);
+
+inline auto __thiscall allocate_Bytes_maybe_hook::trampoline(void* me, int length) -> int {
+    return instance()->hook_.original()(me, length);
+}
 
 DEFINE_HOOK(
     maybe_load_level,
@@ -214,47 +224,83 @@ DEFINE_HOOK(
     int, void** me, wchar_t* file_path
 );
 
-inline auto __thiscall maybe_load_level_hook::trampoline(void** me, wchar_t* file_path) -> int {
-    const auto widened = std::wstring(file_path);
-    const auto pos = widened.find_last_of(L"\\/");
-    const std::wstring file_name = (pos == std::wstring::npos)
-        ? widened
-        : widened.substr(pos + 1);
+struct RemoteStorageImpl {
+    void** vtable;
 
-    auto get_mission_number = [](const std::wstring& name) -> int {
-        static const std::wregex re(LR"(.*?(\d+)\.sav$)", std::regex::icase);
-        if (std::wsmatch match; std::regex_match(name, match, re) && match.size() > 1) {
-            return std::stoi(match[1].str());
-        }
-        return -1;
-    };
+public:
+    virtual __thiscall bool FileWrite(const char*, const void*, int);
+    virtual int __thiscall FileRead(const char* file_name, void* data_out, int to_read) {
+        LOG("RemoteStorageImpl::FileRead file_name={} to_read={}", file_name, to_read);
 
-    const auto all_files = FileSystem::EnumerateFiles(L"./LocalFiles");
-    LOG("   file_name -> {}", (new FString(file_name.c_str()))->ToString().c_str());
-    LOG("   get_mission_number(file_name) -> {}", get_mission_number(file_name));
-    LOG("   all_files.size() -> {}", all_files.size());
 
-    if (get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0) {
-        LOG("get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0");
         return 0;
-    }
+    };
+    virtual bool __thiscall FileForget(const char*);
+    virtual bool __thiscall FileDelete(const char*);
+    virtual unsigned __int64 __thiscall FileShare(const char*);
+    virtual bool __thiscall SetSyncPlatforms(const char*, uint8_t);
+    virtual bool __thiscall FileExists(const char*) { return true; };
+    virtual bool __thiscall FilePersisted(const char*);
 
-    const auto& chosen_file_name = all_files[get_mission_number(file_name) - 1];
-    const auto resolved_path = std::wstring(L"./LocalFiles/") + chosen_file_name;
-    const auto file_data = FileSystem::ReadFile(resolved_path.c_str());
+    virtual int __thiscall GetFileSize(const char* file_name) {
+        LOG("RemoteStorageImpl::GetFileSize file_name={}", file_name);
 
-    LOG("file_name={} file_bytes={}",
-        (new FString(resolved_path.c_str()))->ToString().c_str(),
-        file_data.size());
+        return 0;
+    };
+};
 
-    if (!file_data.empty()) {
-        LOG("copying file bytes")
-        *(me+36) = new char[file_data.size()];
-        std::memcpy(*(me+36), reinterpret_cast<const char*>(file_data.data()), file_data.size());
-        return 1;
-    }
+inline auto __thiscall maybe_load_level_hook::trampoline(void** me, wchar_t* file_path) -> int {
+    RemoteStorageImpl RemoteStorage = RemoteStorageImpl{};
 
-    return 0;
+    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+    *reinterpret_cast<void**>(base + 0x0105B15C) = &RemoteStorage;
+
+    // const auto widened = std::wstring(file_path);
+    // const auto pos = widened.find_last_of(L"\\/");
+    // const std::wstring file_name = (pos == std::wstring::npos)
+    //     ? widened
+    //     : widened.substr(pos + 1);
+    //
+    // auto get_mission_number = [](const std::wstring& name) -> int {
+    //     static const std::wregex re(LR"(.*?(\d+)\.sav$)", std::regex::icase);
+    //     if (std::wsmatch match; std::regex_match(name, match, re) && match.size() > 1) {
+    //         return std::stoi(match[1].str());
+    //     }
+    //     return -1;
+    // };
+    //
+    // const auto all_files = FileSystem::EnumerateFiles(L"./LocalFiles");
+    // LOG("   file_name -> {}", (new FString(file_name.c_str()))->ToString().c_str());
+    // LOG("   get_mission_number(file_name) -> {}", get_mission_number(file_name));
+    // LOG("   all_files.size() -> {}", all_files.size());
+    //
+    // if (get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0) {
+    //     LOG("get_mission_number(file_name) - 1 > all_files.size() || get_mission_number(file_name) - 1 < 0");
+    //     return 0;
+    // }
+    //
+    // const auto& chosen_file_name = all_files[get_mission_number(file_name) - 1];
+    // const auto resolved_path = std::wstring(L"./LocalFiles/") + chosen_file_name;
+    // const auto file_data = FileSystem::ReadFile(resolved_path.c_str());
+    //
+    // LOG("file_name={} file_bytes={}",
+    //     (new FString(resolved_path.c_str()))->ToString().c_str(),
+    //     file_data.size());
+    // if (file_data.empty()) return 0;
+    //     // auto Data = *reinterpret_cast<TArray<char>*>(me+36);
+    //     // Data.ReAllocate((int32_t)((file_data.size() + 1) * sizeof(char)));
+    //
+    // // auto Data = *reinterpret_cast<TArray<char>*>(me+36);
+    // // LOG("Result Array data={} len={} max={}", Data.data(), Data.size(), Data.capacity());
+    //
+    // const auto bytes = reinterpret_cast<TArray<uint8_t>*>(me + 36);
+    // allocate_Bytes_maybe_hook::instance()->hook_.original()(bytes, file_data.size());
+    // std::memcpy(((void**)bytes)[0], file_data.data(), file_data.size());
+    // me[13] = 0;
+    //
+    // LOG("Wrote bytes into array");
+
+    return 1;
 }
 
 #endif
